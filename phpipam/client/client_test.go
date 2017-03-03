@@ -2,6 +2,7 @@ package client
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -10,6 +11,8 @@ import (
 	"github.com/paybyphone/phpipam-sdk-go/phpipam"
 	"github.com/paybyphone/phpipam-sdk-go/phpipam/session"
 )
+
+const testDateStamp = "2999-12-31 23:59:59"
 
 const authErrorResponseText = `
 {
@@ -27,16 +30,16 @@ const sessionErrorResponseText = `
 }
 `
 
-const authOKResponseText = `
+var authOKResponseText = fmt.Sprintf(`
 {
   "code": 200,
   "success": true,
   "data": {
     "token": "foobarbazboop",
-    "expires": "2017-03-03 00:56:34"
+    "expires": "%s"
   }
 }
-`
+`, testDateStamp)
 
 const subnetSearchOKResponseText = `
 {
@@ -174,7 +177,7 @@ func fullSessionConfig() *session.Session {
 		Config: phpipamConfig(),
 		Token: session.Token{
 			String:  "foobarbazboop",
-			Expires: "2017-03-03 00:56:34",
+			Expires: testDateStamp,
 		},
 	}
 }
@@ -206,7 +209,7 @@ func TestLoginSessionSuccess(t *testing.T) {
 
 	expected := session.Token{
 		String:  "foobarbazboop",
-		Expires: "2017-03-03 00:56:34",
+		Expires: testDateStamp,
 	}
 	actual := client.Session.Token
 
@@ -249,7 +252,7 @@ func TestRefreshSessionSuccess(t *testing.T) {
 
 	expected := session.Token{
 		String:  "foobarbazboop",
-		Expires: "2017-03-03 00:56:34",
+		Expires: testDateStamp,
 	}
 	actual := client.Session.Token
 
