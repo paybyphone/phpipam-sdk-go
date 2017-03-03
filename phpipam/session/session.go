@@ -14,7 +14,7 @@ const timeLayout = "2006-01-02 15:04:05"
 // Token represents a PHPIPAM session token
 type Token struct {
 	// The token string.
-	String string
+	String string `json:"token"`
 
 	// The token's expiry date.
 	Expires string

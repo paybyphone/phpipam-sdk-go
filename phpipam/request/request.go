@@ -140,7 +140,7 @@ func (r *Request) Send() error {
 			return fmt.Errorf("Error preparing request data: %s", err)
 		}
 		buf := bytes.NewBuffer(bs)
-		req, err = http.NewRequest(r.Method, fmt.Sprintf("%s%s", r.Session.Config.Endpoint, r.URI), buf)
+		req, err = http.NewRequest(r.Method, fmt.Sprintf("%s/%s%s", r.Session.Config.Endpoint, r.Session.Config.AppID, r.URI), buf)
 		req.Header.Add("Content-Type", "application/json")
 	default:
 		return fmt.Errorf("API request method %s not supported by PHPIPAM", r.Method)

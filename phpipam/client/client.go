@@ -16,8 +16,8 @@ type Client struct {
 	Session *session.Session
 }
 
-// New creates a new client.
-func New(s *session.Session) *Client {
+// NewClient creates a new client.
+func NewClient(s *session.Session) *Client {
 	c := &Client{
 		Session: s,
 	}

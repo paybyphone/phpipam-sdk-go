@@ -82,17 +82,17 @@ func phpipamConfig() phpipam.Config {
 	return phpipam.Config{
 		AppID:    "0123456789abcdefgh",
 		Password: "changeit",
-		Username: "nobody@example.com",
+		Username: "nobody",
 	}
 }
 
 func testRequest(c phpipam.Config, in interface{}, out interface{}) *Request {
-	s := session.Session{
+	s := &session.Session{
 		Config: c,
 	}
 	r := NewRequest(s)
 	r.Method = "GET"
-	r.URI = "/api/2.0/checks"
+	r.URI = "/api/test/users/"
 	r.Input = in
 	r.Output = out
 	return r
