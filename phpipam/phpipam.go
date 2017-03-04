@@ -3,7 +3,9 @@
 package phpipam
 
 import (
+	"encoding/json"
 	"os"
+	"reflect"
 	"strings"
 )
 
@@ -71,4 +73,45 @@ func DefaultConfigProvider() Config {
 		}
 	}
 	return cfg
+}
+
+// BoolIntString is a type for representing a boolean in an IntString form,
+// such as "0" for false and "1" for true.
+//
+// This is technically a binary string as per the PHPIPAM spec, however in test
+// JSON and the spec itself, boolean values seem to be represented by the
+// actual string values as shown above.
+type BoolIntString bool
+
+// MarshalJSON implements json.Marshaler for the BoolIntString type.
+func (bis BoolIntString) MarshalJSON() ([]byte, error) {
+	var s string
+	switch bis {
+	case false:
+		s = "0"
+	case true:
+		s = "1"
+	}
+	return json.Marshal(s)
+}
+
+// UnmarshalJSON implements json.Unmarshaler for the BoolIntString type.
+func (bis *BoolIntString) UnmarshalJSON(b []byte) error {
+	var s string
+	if err := json.Unmarshal(b, &s); err != nil {
+		return err
+	}
+	switch s {
+	case "0":
+		*bis = false
+	case "1":
+		*bis = true
+	default:
+		return &json.UnmarshalTypeError{
+			Value: "bool",
+			Type:  reflect.ValueOf(s).Type(),
+		}
+	}
+
+	return nil
 }
