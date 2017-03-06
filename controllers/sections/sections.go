@@ -100,7 +100,7 @@ func (c *Controller) UpdateSection(in Section) (err error) {
 
 // DeleteSection deletes a section by sending a DELETE request. All subnets and
 // addresses in the section will be deleted as well.
-func (c *Controller) DeleteSection(in Section) (err error) {
-	err = c.SendRequest("DELETE", "/sections/", &in, &struct{}{})
+func (c *Controller) DeleteSection(id int) (err error) {
+	err = c.SendRequest("DELETE", fmt.Sprintf("/sections/%d/", id), &struct{}{}, &struct{}{})
 	return
 }

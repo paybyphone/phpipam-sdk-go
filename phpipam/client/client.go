@@ -30,7 +30,7 @@ func loginSession(s *session.Session) error {
 	var out session.Token
 	r := request.NewRequest(s)
 	r.Method = "POST"
-	r.URI = fmt.Sprintf("/%s/user/", s.Config.AppID)
+	r.URI = "/user/"
 	r.Input = &struct{}{}
 	r.Output = &out
 	if err := r.Send(); err != nil {
@@ -46,7 +46,7 @@ func refreshSession(s *session.Session) error {
 	var out session.Token
 	r := request.NewRequest(s)
 	r.Method = "PATCH"
-	r.URI = fmt.Sprintf("/%s/user/", s.Config.AppID)
+	r.URI = "/user/"
 	r.Input = &struct{}{}
 	r.Output = &out
 	if err := r.Send(); err != nil {

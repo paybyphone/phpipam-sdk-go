@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/paybyphone/phpipam-sdk-go/integration"
 	"github.com/paybyphone/phpipam-sdk-go/phpipam"
 	"github.com/paybyphone/phpipam-sdk-go/phpipam/session"
 )
@@ -307,9 +308,133 @@ func TestDeleteSection(t *testing.T) {
 	sess.Config.Endpoint = ts.URL
 	client := New(sess)
 
-	in := testDeleteSectionInput
-	err := client.DeleteSection(in)
+	err := client.DeleteSection(3)
 	if err != nil {
 		t.Fatalf("Bad: %s", err)
 	}
+}
+
+// testAccSectionsCRUDCreate tests the creation part of the sections controller
+// CRUD acceptance test.
+func testAccSectionsCRUDCreate(t *testing.T, s Section) {
+	sess := session.NewSession()
+	c := New(sess)
+
+	if _, err := c.CreateSection(s); err != nil {
+		t.Fatalf("Create: Error creating section: %s", err)
+	}
+}
+
+// testAccSectionsCRUDReadByName tests the read part of the sections controller
+// acceptance test, by fetching the section by name. This is the first part of
+// the 3-part read test, and also returns the ID of the section so that the
+// test fixutre can be updated.
+func testAccSectionsCRUDReadByName(t *testing.T, s Section) int {
+	sess := session.NewSession()
+	c := New(sess)
+
+	out, err := c.GetSectionByName(s.Name)
+	if err != nil {
+		t.Fatalf("Can't get section by name: %s", err)
+	}
+	// We don't have an ID yet here, so set it.
+	s.ID = out.ID
+
+	if !reflect.DeepEqual(s, out) {
+		t.Fatalf("ReadByName: Expected %#v, got %#v", s, out)
+	}
+	return out.ID
+}
+
+// testAccSectionsCRUDReadByID tests the read part of the sections controller
+// acceptance test, by fetching the section by ID. This is the second part of
+// the 3-part read test
+func testAccSectionsCRUDReadByID(t *testing.T, s Section) {
+	sess := session.NewSession()
+	c := New(sess)
+
+	out, err := c.GetSectionByID(s.ID)
+	if err != nil {
+		t.Fatalf("Can't find section by ID: %s", err)
+	}
+
+	if !reflect.DeepEqual(s, out) {
+		t.Fatalf("ReadByID: Expected %#v, got %#v", s, out)
+	}
+}
+
+// testAccSectionsCRUDReadByList tests the read part of the sections controller
+// acceptance test, by fetching the section by searching for it in the sections
+// listing. This is the third part of the 3-part read test.
+func testAccSectionsCRUDReadByList(t *testing.T, s Section) {
+	sess := session.NewSession()
+	c := New(sess)
+
+	out, err := c.ListSections()
+	if err != nil {
+		t.Fatalf("Can't list sections: %s", err)
+	}
+	for _, v := range out {
+		if reflect.DeepEqual(s, v) {
+			return
+		}
+	}
+
+	t.Fatalf("ReadByList: Could not find section %#v in %#v", s, out)
+}
+
+// testAccSectionsCRUDUpdate tests the update part of the sections controller
+// acceptance test.
+func testAccSectionsCRUDUpdate(t *testing.T, s Section) {
+	sess := session.NewSession()
+	c := New(sess)
+
+	if err := c.UpdateSection(s); err != nil {
+		t.Fatalf("Error updating section: %s", err)
+	}
+
+	// Assert update
+	out, err := c.GetSectionByID(s.ID)
+
+	if err != nil {
+		t.Fatalf("Error fetching section after update: %s", err)
+	}
+
+	// Update updated date in original
+	s.EditDate = out.EditDate
+
+	if !reflect.DeepEqual(s, out) {
+		t.Fatalf("Error after update: expected %#v, got %#v", s, out)
+	}
+}
+
+// testAccSectionsCRUDDelete tests the delete part of the sections controller
+// acceptance test.
+func testAccSectionsCRUDDelete(t *testing.T, s Section) {
+	sess := session.NewSession()
+	c := New(sess)
+
+	if err := c.DeleteSection(s.ID); err != nil {
+		t.Fatalf("Error deleting section: %s", err)
+	}
+
+	// check to see if section is actually gone
+	if _, err := c.GetSectionByID(s.ID); err == nil {
+		t.Fatalf("Section still present after delete")
+	}
+}
+
+// TestAccSectionsCRUD runs a full create-read-update-delete test for a PHPIPAM
+// section.
+func TestAccSectionsCRUD(t *testing.T) {
+	testacc.VetAccConditions(t)
+
+	section := testCreateSectionInput
+	testAccSectionsCRUDCreate(t, section)
+	section.ID = testAccSectionsCRUDReadByName(t, section)
+	testAccSectionsCRUDReadByID(t, section)
+	testAccSectionsCRUDReadByList(t, section)
+	section.Name = "bazboop"
+	testAccSectionsCRUDUpdate(t, section)
+	testAccSectionsCRUDDelete(t, section)
 }
