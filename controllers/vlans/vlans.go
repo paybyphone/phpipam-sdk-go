@@ -56,8 +56,13 @@ func (c *Controller) GetVLANByID(id int) (out VLAN, err error) {
 	return
 }
 
-// GetVLANByNumber GETs a VLAN via its VLAN number.
-func (c *Controller) GetVLANByNumber(id int) (out VLAN, err error) {
+// GetVLANsByNumber GETs a VLAN via its VLAN number.
+//
+// This function is a search, however it's not entirely clear from the API spec
+// on how to enter a search term that would return multiple VLANs. Nontheless,
+// the output from this method is an array of VLANs, so this function returns a
+// slice.
+func (c *Controller) GetVLANsByNumber(id int) (out []VLAN, err error) {
 	err = c.SendRequest("GET", fmt.Sprintf("/vlans/search/%d/", id), &struct{}{}, &out)
 	return
 }
@@ -68,8 +73,8 @@ func (c *Controller) UpdateVLAN(in VLAN) (message string, err error) {
 	return
 }
 
-// DeleteVLAN deletes a VLAN by sending a DELETE request.
-func (c *Controller) DeleteVLAN(in VLAN) (message string, err error) {
-	err = c.SendRequest("DELETE", "/vlans/", &in, &message)
+// DeleteVLAN deletes a VLAN by its ID.
+func (c *Controller) DeleteVLAN(id int) (message string, err error) {
+	err = c.SendRequest("DELETE", fmt.Sprintf("/vlans/%d/", id), &struct{}{}, &message)
 	return
 }

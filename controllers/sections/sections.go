@@ -93,14 +93,14 @@ func (c *Controller) GetSectionByName(name string) (out Section, err error) {
 }
 
 // UpdateSection updates a section by sending a PATCH request.
-func (c *Controller) UpdateSection(in Section) (message string, err error) {
-	err = c.SendRequest("PATCH", "/sections/", &in, &message)
+func (c *Controller) UpdateSection(in Section) (err error) {
+	err = c.SendRequest("PATCH", "/sections/", &in, &struct{}{})
 	return
 }
 
 // DeleteSection deletes a section by sending a DELETE request. All subnets and
 // addresses in the section will be deleted as well.
-func (c *Controller) DeleteSection(in Section) (message string, err error) {
-	err = c.SendRequest("DELETE", "/sections/", &in, &message)
+func (c *Controller) DeleteSection(in Section) (err error) {
+	err = c.SendRequest("DELETE", "/sections/", &in, &struct{}{})
 	return
 }

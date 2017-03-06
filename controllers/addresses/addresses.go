@@ -90,8 +90,10 @@ func (c *Controller) GetAddressByID(id int) (out Address, err error) {
 	return
 }
 
-// GetAddressesByIP searches for an address by its IP, full or partial. It can
-// return multiple results.
+// GetAddressesByIP searches for an address by its IP.
+//
+// According to the spec, this can return multiple addresses, however it's not
+// entirely clear how to perform a search that would yield multiple results.
 func (c *Controller) GetAddressesByIP(ipaddr string) (out []Address, err error) {
 	err = c.SendRequest("GET", fmt.Sprintf("/addresses/search/%s/", ipaddr), &struct{}{}, &out)
 	return

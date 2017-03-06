@@ -84,8 +84,10 @@ func (r *requestResponse) ReadResponseJSON(v interface{}) error {
 		return r.handleError()
 	}
 
-	if err := json.Unmarshal(resp.Data, v); err != nil {
-		return fmt.Errorf("JSON parsing error: %s - Response data: %s", err, string(resp.Data))
+	if string(resp.Data) != "" {
+		if err := json.Unmarshal(resp.Data, v); err != nil {
+			return fmt.Errorf("JSON parsing error: %s - Response data: %s", err, string(resp.Data))
+		}
 	}
 	return nil
 }

@@ -102,7 +102,7 @@ func (bis *BoolIntString) UnmarshalJSON(b []byte) error {
 		return err
 	}
 	switch s {
-	case "0":
+	case "0", "":
 		*bis = false
 	case "1":
 		*bis = true

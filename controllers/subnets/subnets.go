@@ -112,13 +112,23 @@ func (c *Controller) GetSubnetByID(id int) (out Subnet, err error) {
 	return
 }
 
-// GetSubnetByCIDR GETs a subnet via its CIDR (i.e. 10.10.1.0/24).
-func (c *Controller) GetSubnetByCIDR(cidr string) (out Subnet, err error) {
+// GetSubnetsByCIDR GETs a subnet via its CIDR (i.e. 10.10.1.0/24).
+//
+// The function's name reflects the fact that an array of subnets is returned
+// through the API, although it remains unclear how to actually query this
+// method in a way that would return multiple results. Using a broader CIDR
+// will not return multiple results, and using the CIDR of a master subnet will
+// return that subnet only.
+func (c *Controller) GetSubnetsByCIDR(cidr string) (out []Subnet, err error) {
 	err = c.SendRequest("GET", fmt.Sprintf("/subnets/%s/", cidr), &struct{}{}, &out)
 	return
 }
 
 // UpdateSubnet updates a subnet by sending a PATCH request.
+//
+// Note you cannot use this function to update a subnet's CIDR - to split,
+// grow, or renumber a subnet, you need to use other methods that are currently
+// not implemented in this SDK. See the API spec for more details.
 func (c *Controller) UpdateSubnet(in Subnet) (message string, err error) {
 	err = c.SendRequest("PATCH", "/subnets/", &in, &message)
 	return
