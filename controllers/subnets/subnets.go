@@ -124,8 +124,8 @@ func (c *Controller) UpdateSubnet(in Subnet) (message string, err error) {
 	return
 }
 
-// DeleteSubnet deletes a subnet by sending a DELETE request.
-func (c *Controller) DeleteSubnet(in Subnet) (message string, err error) {
-	err = c.SendRequest("DELETE", "/subnets/", &in, &message)
+// DeleteSubnet deletes a subnet by its ID.
+func (c *Controller) DeleteSubnet(id int) (message string, err error) {
+	err = c.SendRequest("DELETE", fmt.Sprintf("/subnets/%d/", id), &struct{}{}, &message)
 	return
 }
