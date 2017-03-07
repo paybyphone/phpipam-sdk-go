@@ -15,6 +15,8 @@ provider to help insert data gathered from AWS and beyond.
 
 See the [GoDoc][2] for the SDK usage details.
 
+[2]: https://godoc.org/github.com/paybyphone/phpipam-sdk-go
+
 ## License
 
 ```
