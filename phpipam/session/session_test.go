@@ -10,6 +10,7 @@ import (
 func phpipamConfig() phpipam.Config {
 	return phpipam.Config{
 		AppID:    "0123456789abcdefgh",
+		Endpoint: "http://localhost/api",
 		Password: "changeit",
 		Username: "nobody",
 	}
@@ -31,12 +32,11 @@ func TestNewSession(t *testing.T) {
 	expected := &Session{
 		Config: phpipamConfig(),
 	}
-	expected.Config.Endpoint = "http://localhost/api"
 
 	actual := NewSession(cfg)
 
 	if !reflect.DeepEqual(expected, actual) {
-		t.Fatalf("Expected session to be %s, got %s", expected, actual)
+		t.Fatalf("Expected session to be %#v, got %#v", expected, actual)
 	}
 }
 

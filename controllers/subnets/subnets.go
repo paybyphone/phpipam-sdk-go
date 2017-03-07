@@ -120,7 +120,7 @@ func (c *Controller) GetSubnetByID(id int) (out Subnet, err error) {
 // will not return multiple results, and using the CIDR of a master subnet will
 // return that subnet only.
 func (c *Controller) GetSubnetsByCIDR(cidr string) (out []Subnet, err error) {
-	err = c.SendRequest("GET", fmt.Sprintf("/subnets/%s/", cidr), &struct{}{}, &out)
+	err = c.SendRequest("GET", fmt.Sprintf("/subnets/cidr/%s/", cidr), &struct{}{}, &out)
 	return
 }
 

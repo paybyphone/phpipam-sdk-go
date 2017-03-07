@@ -8,6 +8,7 @@ import (
 
 	"github.com/paybyphone/phpipam-sdk-go/phpipam"
 	"github.com/paybyphone/phpipam-sdk-go/phpipam/session"
+	"github.com/paybyphone/phpipam-sdk-go/testacc"
 )
 
 var testCreateAddressInput = Address{
@@ -270,4 +271,119 @@ func TestDeleteAddress(t *testing.T) {
 	if !reflect.DeepEqual(expected, actual) {
 		t.Fatalf("Expected %#v, got %#v", expected, actual)
 	}
+}
+
+// testAccAddressCRUDCreate tests the creation part of the addresss controller
+// CRUD acceptance test.
+func testAccAddressCRUDCreate(t *testing.T, a Address) {
+	sess := session.NewSession()
+	c := New(sess)
+
+	if _, err := c.CreateAddress(a); err != nil {
+		t.Fatalf("Create: Error creating address: %s", err)
+	}
+}
+
+// testAccAddressCRUDReadByIP tests the read part of the addresss controller
+// acceptance test, by fetching the address by IP. This is the first part of
+// the 2-part read test, and also returns the ID of the address so that the
+// test fixutre can be updated.
+func testAccAddressCRUDReadByIP(t *testing.T, a Address) int {
+	sess := session.NewSession()
+	c := New(sess)
+
+	out, err := c.GetAddressesByIP(a.IPAddress)
+	if err != nil {
+		t.Fatalf("Can't get address by IP: %s", err)
+	}
+
+	for _, v := range out {
+		// We don't have an ID yet here, so set it.
+		a.ID = v.ID
+		if reflect.DeepEqual(a, v) {
+			return v.ID
+		}
+	}
+
+	t.Fatalf("ReadByIP: Could not find address %#v in %#v", a, out)
+	return 0
+}
+
+// testAccAddressCRUDReadByID tests the read part of the addresss controller
+// acceptance test, by fetching the address by ID. This is the second part of
+// the 2-part read test.
+func testAccAddressCRUDReadByID(t *testing.T, a Address) {
+	sess := session.NewSession()
+	c := New(sess)
+
+	out, err := c.GetAddressByID(a.ID)
+	if err != nil {
+		t.Fatalf("Can't find address by ID: %s", err)
+	}
+
+	if !reflect.DeepEqual(a, out) {
+		t.Fatalf("ReadByID: Expected %#v, got %#v", a, out)
+	}
+}
+
+// testAccAddressCRUDUpdate tests the update part of the addresss controller
+// acceptance test.
+func testAccAddressCRUDUpdate(t *testing.T, a Address) {
+	sess := session.NewSession()
+	c := New(sess)
+
+	// IP and subnetID can't be in request
+	params := a
+	params.IPAddress = ""
+	params.SubnetID = 0
+
+	if _, err := c.UpdateAddress(params); err != nil {
+		t.Fatalf("Error updating address: %s", err)
+	}
+
+	// Assert update
+	out, err := c.GetAddressByID(a.ID)
+
+	if err != nil {
+		t.Fatalf("Error fetching address after update: %s", err)
+	}
+
+	// Update updated date in original
+	a.EditDate = out.EditDate
+
+	if !reflect.DeepEqual(a, out) {
+		t.Fatalf("Error after update: expected %#v, got %#v", a, out)
+	}
+}
+
+// testAccAddressCRUDDelete tests the delete part of the addresss controller
+// acceptance test.
+func testAccAddressCRUDDelete(t *testing.T, a Address) {
+	sess := session.NewSession()
+	c := New(sess)
+
+	if _, err := c.DeleteAddress(a.ID, false); err != nil {
+		t.Fatalf("Error deleting address: %s", err)
+	}
+
+	// check to see if address is actually gone
+	if _, err := c.GetAddressByID(a.ID); err == nil {
+		t.Fatalf("Address still present after delete")
+	}
+}
+
+// TestAccAddressCRUD runs a full create-read-update-delete test for a PHPIPAM
+// address.
+func TestAccAddressCRUD(t *testing.T) {
+	testacc.VetAccConditions(t)
+
+	address := testCreateAddressInput
+	testAccAddressCRUDCreate(t, address)
+	// tag goes to used (default ID 2) when an IP is created
+	address.Tag = 2
+	address.ID = testAccAddressCRUDReadByIP(t, address)
+	testAccAddressCRUDReadByID(t, address)
+	address.Description = "foobaz"
+	testAccAddressCRUDUpdate(t, address)
+	testAccAddressCRUDDelete(t, address)
 }

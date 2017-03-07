@@ -1,6 +1,7 @@
 package subnets
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/paybyphone/phpipam-sdk-go/phpipam"
 	"github.com/paybyphone/phpipam-sdk-go/phpipam/session"
+	"github.com/paybyphone/phpipam-sdk-go/testacc"
 )
 
 var testCreateSubnetInput = Subnet{
@@ -330,4 +332,117 @@ func TestDeleteSubnet(t *testing.T) {
 	if !reflect.DeepEqual(expected, actual) {
 		t.Fatalf("Expected %#v, got %#v", expected, actual)
 	}
+}
+
+// testAccSubnetCRUDCreate tests the creation part of the subnets controller
+// CRUD acceptance test.
+func testAccSubnetCRUDCreate(t *testing.T, s Subnet) {
+	sess := session.NewSession()
+	c := New(sess)
+
+	if _, err := c.CreateSubnet(s); err != nil {
+		t.Fatalf("Create: Error creating subnet: %s", err)
+	}
+}
+
+// testAccSubnetCRUDReadByCIDR tests the read part of the subnets controller
+// acceptance test, by fetching the subnet by CIDR. This is the first part of
+// the 2-part read test, and also returns the ID of the subnet so that the
+// test fixutre can be updated.
+func testAccSubnetCRUDReadByCIDR(t *testing.T, s Subnet) int {
+	sess := session.NewSession()
+	c := New(sess)
+
+	out, err := c.GetSubnetsByCIDR(fmt.Sprintf("%s/%d", s.SubnetAddress, s.Mask))
+	if err != nil {
+		t.Fatalf("Can't get subnet by CIDR: %s", err)
+	}
+
+	for _, v := range out {
+		// We don't have an ID yet here, so set it.
+		s.ID = v.ID
+		if reflect.DeepEqual(s, v) {
+			return v.ID
+		}
+	}
+
+	t.Fatalf("ReadByCIDR: Could not find subnet %#v in %#v", s, out)
+	return 0
+}
+
+// testAccSubnetCRUDReadByID tests the read part of the subnets controller
+// acceptance test, by fetching the subnet by ID. This is the second part of
+// the 2-part read test.
+func testAccSubnetCRUDReadByID(t *testing.T, s Subnet) {
+	sess := session.NewSession()
+	c := New(sess)
+
+	out, err := c.GetSubnetByID(s.ID)
+	if err != nil {
+		t.Fatalf("Can't find subnet by ID: %s", err)
+	}
+
+	if !reflect.DeepEqual(s, out) {
+		t.Fatalf("ReadByID: Expected %#v, got %#v", s, out)
+	}
+}
+
+// testAccSubnetCRUDUpdate tests the update part of the subnets controller
+// acceptance test.
+func testAccSubnetCRUDUpdate(t *testing.T, s Subnet) {
+	sess := session.NewSession()
+	c := New(sess)
+
+	// Address or mask can't be in an update request.
+	params := s
+	params.SubnetAddress = ""
+	params.Mask = 0
+
+	if _, err := c.UpdateSubnet(params); err != nil {
+		t.Fatalf("Error updating subnet: %s", err)
+	}
+
+	// Assert update
+	out, err := c.GetSubnetByID(s.ID)
+
+	if err != nil {
+		t.Fatalf("Error fetching subnet after update: %s", err)
+	}
+
+	// Update updated date in original
+	s.EditDate = out.EditDate
+
+	if !reflect.DeepEqual(s, out) {
+		t.Fatalf("Error after update: expected %#v, got %#v", s, out)
+	}
+}
+
+// testAccSubnetCRUDDelete tests the delete part of the subnets controller
+// acceptance test.
+func testAccSubnetCRUDDelete(t *testing.T, s Subnet) {
+	sess := session.NewSession()
+	c := New(sess)
+
+	if _, err := c.DeleteSubnet(s.ID); err != nil {
+		t.Fatalf("Error deleting subnet: %s", err)
+	}
+
+	// check to see if subnet is actually gone
+	if _, err := c.GetSubnetByID(s.ID); err == nil {
+		t.Fatalf("Subnet still present after delete")
+	}
+}
+
+// TestAccSubnetCRUD runs a full create-read-update-delete test for a PHPIPAM
+// subnet.
+func TestAccSubnetCRUD(t *testing.T) {
+	testacc.VetAccConditions(t)
+
+	subnet := testCreateSubnetInput
+	testAccSubnetCRUDCreate(t, subnet)
+	subnet.ID = testAccSubnetCRUDReadByCIDR(t, subnet)
+	testAccSubnetCRUDReadByID(t, subnet)
+	subnet.Description = "Updating subnet!"
+	testAccSubnetCRUDUpdate(t, subnet)
+	testAccSubnetCRUDDelete(t, subnet)
 }

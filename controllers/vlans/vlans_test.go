@@ -8,6 +8,7 @@ import (
 
 	"github.com/paybyphone/phpipam-sdk-go/phpipam"
 	"github.com/paybyphone/phpipam-sdk-go/phpipam/session"
+	"github.com/paybyphone/phpipam-sdk-go/testacc"
 )
 
 var testCreateVLANInput = VLAN{
@@ -243,4 +244,114 @@ func TestDeleteVLAN(t *testing.T) {
 	if !reflect.DeepEqual(expected, actual) {
 		t.Fatalf("Expected %#v, got %#v", expected, actual)
 	}
+}
+
+// testAccVLANCRUDCreate tests the creation part of the vlans controller
+// CRUD acceptance test.
+func testAccVLANCRUDCreate(t *testing.T, v VLAN) {
+	sess := session.NewSession()
+	c := New(sess)
+
+	if _, err := c.CreateVLAN(v); err != nil {
+		t.Fatalf("Create: Error creating vlan: %s", err)
+	}
+}
+
+// testAccVLANCRUDReadByNumber tests the read part of the vlans controller
+// acceptance test, by fetching the vlan by number. This is the first part of
+// the 2-part read test, and also returns the ID of the vlan so that the
+// test fixutre can be updated.
+func testAccVLANCRUDReadByNumber(t *testing.T, v VLAN) int {
+	sess := session.NewSession()
+	c := New(sess)
+
+	out, err := c.GetVLANsByNumber(v.Number)
+	if err != nil {
+		t.Fatalf("Can't get vlan by number: %s", err)
+	}
+
+	for _, val := range out {
+		// We don't have an ID yet here, so set it.
+		v.ID = val.ID
+		if reflect.DeepEqual(v, val) {
+			return val.ID
+		}
+	}
+
+	t.Fatalf("ReadByNumber: Could not find vlan %#v in %#v", v, out)
+	return 0
+}
+
+// testAccVLANCRUDReadByID tests the read part of the vlans controller
+// acceptance test, by fetching the vlan by ID. This is the second part of
+// the 2-part read test.
+func testAccVLANCRUDReadByID(t *testing.T, v VLAN) {
+	sess := session.NewSession()
+	c := New(sess)
+
+	out, err := c.GetVLANByID(v.ID)
+	if err != nil {
+		t.Fatalf("Can't find vlan by ID: %s", err)
+	}
+
+	if !reflect.DeepEqual(v, out) {
+		t.Fatalf("ReadByID: Expected %#v, got %#v", v, out)
+	}
+}
+
+// testAccVLANCRUDUpdate tests the update part of the vlans controller
+// acceptance test.
+func testAccVLANCRUDUpdate(t *testing.T, v VLAN) {
+	sess := session.NewSession()
+	c := New(sess)
+
+	if _, err := c.UpdateVLAN(v); err != nil {
+		t.Fatalf("Error updating vlan: %s", err)
+	}
+
+	// Assert update
+	out, err := c.GetVLANByID(v.ID)
+
+	if err != nil {
+		t.Fatalf("Error fetching vlan after update: %s", err)
+	}
+
+	// Update updated date in original
+	v.EditDate = out.EditDate
+
+	if !reflect.DeepEqual(v, out) {
+		t.Fatalf("Error after update: expected %#v, got %#v", v, out)
+	}
+}
+
+// testAccVLANCRUDDelete tests the delete part of the vlans controller
+// acceptance test.
+func testAccVLANCRUDDelete(t *testing.T, v VLAN) {
+	sess := session.NewSession()
+	c := New(sess)
+
+	if _, err := c.DeleteVLAN(v.ID); err != nil {
+		t.Fatalf("Error deleting vlan: %s", err)
+	}
+
+	// check to see if vlan is actually gone
+	if _, err := c.GetVLANByID(v.ID); err == nil {
+		t.Fatalf("VLAN still present after delete")
+	}
+}
+
+// TestAccVLANCRUD runs a full create-read-update-delete test for a PHPIPAM
+// vlan.
+func TestAccVLANCRUD(t *testing.T) {
+	testacc.VetAccConditions(t)
+
+	vlan := testCreateVLANInput
+	testAccVLANCRUDCreate(t, vlan)
+	// Add the domain ID here as 1 is the default.
+	vlan.DomainID = 1
+	vlan.ID = testAccVLANCRUDReadByNumber(t, vlan)
+	testAccVLANCRUDReadByID(t, vlan)
+	vlan.Name = "bazlan"
+	testAccVLANCRUDUpdate(t, vlan)
+	testAccVLANCRUDDelete(t, vlan)
 }

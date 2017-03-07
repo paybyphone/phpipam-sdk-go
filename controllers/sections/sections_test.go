@@ -6,9 +6,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/paybyphone/phpipam-sdk-go/integration"
 	"github.com/paybyphone/phpipam-sdk-go/phpipam"
 	"github.com/paybyphone/phpipam-sdk-go/phpipam/session"
+	"github.com/paybyphone/phpipam-sdk-go/testacc"
 )
 
 var testListSectionsOutputExpected = []Section{
@@ -348,7 +348,7 @@ func testAccSectionsCRUDReadByName(t *testing.T, s Section) int {
 
 // testAccSectionsCRUDReadByID tests the read part of the sections controller
 // acceptance test, by fetching the section by ID. This is the second part of
-// the 3-part read test
+// the 3-part read test.
 func testAccSectionsCRUDReadByID(t *testing.T, s Section) {
 	sess := session.NewSession()
 	c := New(sess)
