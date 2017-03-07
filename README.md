@@ -1,3 +1,5 @@
+[![GoDoc](https://godoc.org/github.com/paybyphone/phpipam-sdk-go?status.svg)](https://godoc.org/github.com/paybyphone/phpipam-sdk-go)
+
 # phpipam-sdk-go - Partial SDK for PHPIPAM
 
 `phpipam-sdk-go` is a partial SDK for the [PHPIPAM][1] API.
@@ -8,6 +10,10 @@ This is a WIP and this README along with the rest of the code will develop until
 it reaches an acceptable level of maturity that it can be used with some CLI
 tools that we are developing to work with PHPIPAM, and possibly a Terraform
 provider to help insert data gathered from AWS and beyond.
+
+## Reference
+
+See the [GoDoc][2] for the SDK usage details.
 
 ## License
 
