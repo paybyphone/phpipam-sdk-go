@@ -159,7 +159,7 @@ func TestCreateVLAN(t *testing.T) {
 	defer ts.Close()
 	sess := fullSessionConfig()
 	sess.Config.Endpoint = ts.URL
-	client := New(sess)
+	client := NewController(sess)
 
 	in := testCreateVLANInput
 	expected := testCreateVLANOutputExpected
@@ -178,7 +178,7 @@ func TestGetVLANByID(t *testing.T) {
 	defer ts.Close()
 	sess := fullSessionConfig()
 	sess.Config.Endpoint = ts.URL
-	client := New(sess)
+	client := NewController(sess)
 
 	expected := testGetVLANByIDOutputExpected
 	actual, err := client.GetVLANByID(3)
@@ -196,7 +196,7 @@ func TestGetVLANsByNumber(t *testing.T) {
 	defer ts.Close()
 	sess := fullSessionConfig()
 	sess.Config.Endpoint = ts.URL
-	client := New(sess)
+	client := NewController(sess)
 
 	expected := testGetVLANsByNumberOutputExpected
 	actual, err := client.GetVLANsByNumber(1000)
@@ -214,7 +214,7 @@ func TestUpdateVLAN(t *testing.T) {
 	defer ts.Close()
 	sess := fullSessionConfig()
 	sess.Config.Endpoint = ts.URL
-	client := New(sess)
+	client := NewController(sess)
 
 	in := testUpdateVLANInput
 	expected := testUpdateVLANOutputExpected
@@ -233,7 +233,7 @@ func TestDeleteVLAN(t *testing.T) {
 	defer ts.Close()
 	sess := fullSessionConfig()
 	sess.Config.Endpoint = ts.URL
-	client := New(sess)
+	client := NewController(sess)
 
 	expected := testDeleteVLANOutputExpected
 	actual, err := client.DeleteVLAN(3)
@@ -250,7 +250,7 @@ func TestDeleteVLAN(t *testing.T) {
 // CRUD acceptance test.
 func testAccVLANCRUDCreate(t *testing.T, v VLAN) {
 	sess := session.NewSession()
-	c := New(sess)
+	c := NewController(sess)
 
 	if _, err := c.CreateVLAN(v); err != nil {
 		t.Fatalf("Create: Error creating vlan: %s", err)
@@ -263,7 +263,7 @@ func testAccVLANCRUDCreate(t *testing.T, v VLAN) {
 // test fixutre can be updated.
 func testAccVLANCRUDReadByNumber(t *testing.T, v VLAN) int {
 	sess := session.NewSession()
-	c := New(sess)
+	c := NewController(sess)
 
 	out, err := c.GetVLANsByNumber(v.Number)
 	if err != nil {
@@ -287,7 +287,7 @@ func testAccVLANCRUDReadByNumber(t *testing.T, v VLAN) int {
 // the 2-part read test.
 func testAccVLANCRUDReadByID(t *testing.T, v VLAN) {
 	sess := session.NewSession()
-	c := New(sess)
+	c := NewController(sess)
 
 	out, err := c.GetVLANByID(v.ID)
 	if err != nil {
@@ -303,7 +303,7 @@ func testAccVLANCRUDReadByID(t *testing.T, v VLAN) {
 // acceptance test.
 func testAccVLANCRUDUpdate(t *testing.T, v VLAN) {
 	sess := session.NewSession()
-	c := New(sess)
+	c := NewController(sess)
 
 	if _, err := c.UpdateVLAN(v); err != nil {
 		t.Fatalf("Error updating vlan: %s", err)
@@ -328,7 +328,7 @@ func testAccVLANCRUDUpdate(t *testing.T, v VLAN) {
 // acceptance test.
 func testAccVLANCRUDDelete(t *testing.T, v VLAN) {
 	sess := session.NewSession()
-	c := New(sess)
+	c := NewController(sess)
 
 	if _, err := c.DeleteVLAN(v.ID); err != nil {
 		t.Fatalf("Error deleting vlan: %s", err)

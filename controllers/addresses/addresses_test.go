@@ -186,7 +186,7 @@ func TestCreateAddress(t *testing.T) {
 	defer ts.Close()
 	sess := fullSessionConfig()
 	sess.Config.Endpoint = ts.URL
-	client := New(sess)
+	client := NewController(sess)
 
 	in := testCreateAddressInput
 	expected := testCreateAddressOutputExpected
@@ -205,7 +205,7 @@ func TestGetAddressByID(t *testing.T) {
 	defer ts.Close()
 	sess := fullSessionConfig()
 	sess.Config.Endpoint = ts.URL
-	client := New(sess)
+	client := NewController(sess)
 
 	expected := testGetAddressByIDOutputExpected
 	actual, err := client.GetAddressByID(11)
@@ -223,7 +223,7 @@ func TestGetAddressesByIP(t *testing.T) {
 	defer ts.Close()
 	sess := fullSessionConfig()
 	sess.Config.Endpoint = ts.URL
-	client := New(sess)
+	client := NewController(sess)
 
 	expected := testGetAddressesByIPOutputExpected
 	actual, err := client.GetAddressesByIP("10.10.1.10/24")
@@ -241,7 +241,7 @@ func TestUpdateAddress(t *testing.T) {
 	defer ts.Close()
 	sess := fullSessionConfig()
 	sess.Config.Endpoint = ts.URL
-	client := New(sess)
+	client := NewController(sess)
 
 	in := testUpdateAddressInput
 	expected := testUpdateAddressOutputExpected
@@ -260,7 +260,7 @@ func TestDeleteAddress(t *testing.T) {
 	defer ts.Close()
 	sess := fullSessionConfig()
 	sess.Config.Endpoint = ts.URL
-	client := New(sess)
+	client := NewController(sess)
 
 	expected := testDeleteAddressOutputExpected
 	actual, err := client.DeleteAddress(11, false)
@@ -277,7 +277,7 @@ func TestDeleteAddress(t *testing.T) {
 // CRUD acceptance test.
 func testAccAddressCRUDCreate(t *testing.T, a Address) {
 	sess := session.NewSession()
-	c := New(sess)
+	c := NewController(sess)
 
 	if _, err := c.CreateAddress(a); err != nil {
 		t.Fatalf("Create: Error creating address: %s", err)
@@ -290,7 +290,7 @@ func testAccAddressCRUDCreate(t *testing.T, a Address) {
 // test fixutre can be updated.
 func testAccAddressCRUDReadByIP(t *testing.T, a Address) int {
 	sess := session.NewSession()
-	c := New(sess)
+	c := NewController(sess)
 
 	out, err := c.GetAddressesByIP(a.IPAddress)
 	if err != nil {
@@ -314,7 +314,7 @@ func testAccAddressCRUDReadByIP(t *testing.T, a Address) int {
 // the 2-part read test.
 func testAccAddressCRUDReadByID(t *testing.T, a Address) {
 	sess := session.NewSession()
-	c := New(sess)
+	c := NewController(sess)
 
 	out, err := c.GetAddressByID(a.ID)
 	if err != nil {
@@ -330,7 +330,7 @@ func testAccAddressCRUDReadByID(t *testing.T, a Address) {
 // acceptance test.
 func testAccAddressCRUDUpdate(t *testing.T, a Address) {
 	sess := session.NewSession()
-	c := New(sess)
+	c := NewController(sess)
 
 	// IP and subnetID can't be in request
 	params := a
@@ -360,7 +360,7 @@ func testAccAddressCRUDUpdate(t *testing.T, a Address) {
 // acceptance test.
 func testAccAddressCRUDDelete(t *testing.T, a Address) {
 	sess := session.NewSession()
-	c := New(sess)
+	c := NewController(sess)
 
 	if _, err := c.DeleteAddress(a.ID, false); err != nil {
 		t.Fatalf("Error deleting address: %s", err)

@@ -247,7 +247,7 @@ func TestCreateSubnet(t *testing.T) {
 	defer ts.Close()
 	sess := fullSessionConfig()
 	sess.Config.Endpoint = ts.URL
-	client := New(sess)
+	client := NewController(sess)
 
 	in := testCreateSubnetInput
 	expected := testCreateSubnetOutputExpected
@@ -266,7 +266,7 @@ func TestGetSubnetByID(t *testing.T) {
 	defer ts.Close()
 	sess := fullSessionConfig()
 	sess.Config.Endpoint = ts.URL
-	client := New(sess)
+	client := NewController(sess)
 
 	expected := testGetSubnetByIDOutputExpected
 	actual, err := client.GetSubnetByID(8)
@@ -284,7 +284,7 @@ func TestGetSubnetsByCIDR(t *testing.T) {
 	defer ts.Close()
 	sess := fullSessionConfig()
 	sess.Config.Endpoint = ts.URL
-	client := New(sess)
+	client := NewController(sess)
 
 	expected := testGetSubnetsByCIDROutputExpected
 	actual, err := client.GetSubnetsByCIDR("10.10.3.0/24")
@@ -302,7 +302,7 @@ func TestUpdateSubnet(t *testing.T) {
 	defer ts.Close()
 	sess := fullSessionConfig()
 	sess.Config.Endpoint = ts.URL
-	client := New(sess)
+	client := NewController(sess)
 
 	in := testUpdateSubnetInput
 	expected := testUpdateSubnetOutputExpected
@@ -321,7 +321,7 @@ func TestDeleteSubnet(t *testing.T) {
 	defer ts.Close()
 	sess := fullSessionConfig()
 	sess.Config.Endpoint = ts.URL
-	client := New(sess)
+	client := NewController(sess)
 
 	expected := testDeleteSubnetOutputExpected
 	actual, err := client.DeleteSubnet(8)
@@ -338,7 +338,7 @@ func TestDeleteSubnet(t *testing.T) {
 // CRUD acceptance test.
 func testAccSubnetCRUDCreate(t *testing.T, s Subnet) {
 	sess := session.NewSession()
-	c := New(sess)
+	c := NewController(sess)
 
 	if _, err := c.CreateSubnet(s); err != nil {
 		t.Fatalf("Create: Error creating subnet: %s", err)
@@ -351,7 +351,7 @@ func testAccSubnetCRUDCreate(t *testing.T, s Subnet) {
 // test fixutre can be updated.
 func testAccSubnetCRUDReadByCIDR(t *testing.T, s Subnet) int {
 	sess := session.NewSession()
-	c := New(sess)
+	c := NewController(sess)
 
 	out, err := c.GetSubnetsByCIDR(fmt.Sprintf("%s/%d", s.SubnetAddress, s.Mask))
 	if err != nil {
@@ -375,7 +375,7 @@ func testAccSubnetCRUDReadByCIDR(t *testing.T, s Subnet) int {
 // the 2-part read test.
 func testAccSubnetCRUDReadByID(t *testing.T, s Subnet) {
 	sess := session.NewSession()
-	c := New(sess)
+	c := NewController(sess)
 
 	out, err := c.GetSubnetByID(s.ID)
 	if err != nil {
@@ -391,7 +391,7 @@ func testAccSubnetCRUDReadByID(t *testing.T, s Subnet) {
 // acceptance test.
 func testAccSubnetCRUDUpdate(t *testing.T, s Subnet) {
 	sess := session.NewSession()
-	c := New(sess)
+	c := NewController(sess)
 
 	// Address or mask can't be in an update request.
 	params := s
@@ -421,7 +421,7 @@ func testAccSubnetCRUDUpdate(t *testing.T, s Subnet) {
 // acceptance test.
 func testAccSubnetCRUDDelete(t *testing.T, s Subnet) {
 	sess := session.NewSession()
-	c := New(sess)
+	c := NewController(sess)
 
 	if _, err := c.DeleteSubnet(s.ID); err != nil {
 		t.Fatalf("Error deleting subnet: %s", err)

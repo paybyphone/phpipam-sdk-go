@@ -70,8 +70,8 @@ type Controller struct {
 	client.Client
 }
 
-// New returns a new instance of the client for the Addresses controller.
-func New(sess *session.Session) *Controller {
+// NewController returns a new instance of the client for the Addresses controller.
+func NewController(sess *session.Session) *Controller {
 	c := &Controller{
 		Client: *client.NewClient(sess),
 	}

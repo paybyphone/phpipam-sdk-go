@@ -220,7 +220,7 @@ func TestListSections(t *testing.T) {
 	defer ts.Close()
 	sess := fullSessionConfig()
 	sess.Config.Endpoint = ts.URL
-	client := New(sess)
+	client := NewController(sess)
 
 	expected := testListSectionsOutputExpected
 	actual, err := client.ListSections()
@@ -238,7 +238,7 @@ func TestCreateSection(t *testing.T) {
 	defer ts.Close()
 	sess := fullSessionConfig()
 	sess.Config.Endpoint = ts.URL
-	client := New(sess)
+	client := NewController(sess)
 
 	in := testCreateSectionInput
 	expected := testCreateSectionOutputExpected
@@ -257,7 +257,7 @@ func TestGetSectionByID(t *testing.T) {
 	defer ts.Close()
 	sess := fullSessionConfig()
 	sess.Config.Endpoint = ts.URL
-	client := New(sess)
+	client := NewController(sess)
 
 	expected := testGetSectionOutputExpected
 	actual, err := client.GetSectionByID(1)
@@ -275,7 +275,7 @@ func TestGetSectionByName(t *testing.T) {
 	defer ts.Close()
 	sess := fullSessionConfig()
 	sess.Config.Endpoint = ts.URL
-	client := New(sess)
+	client := NewController(sess)
 
 	expected := testGetSectionOutputExpected
 	actual, err := client.GetSectionByName("Customers")
@@ -293,7 +293,7 @@ func TestUpdateSection(t *testing.T) {
 	defer ts.Close()
 	sess := fullSessionConfig()
 	sess.Config.Endpoint = ts.URL
-	client := New(sess)
+	client := NewController(sess)
 
 	in := testUpdateSectionInput
 	err := client.UpdateSection(in)
@@ -306,7 +306,7 @@ func TestDeleteSection(t *testing.T) {
 	defer ts.Close()
 	sess := fullSessionConfig()
 	sess.Config.Endpoint = ts.URL
-	client := New(sess)
+	client := NewController(sess)
 
 	err := client.DeleteSection(3)
 	if err != nil {
@@ -318,7 +318,7 @@ func TestDeleteSection(t *testing.T) {
 // CRUD acceptance test.
 func testAccSectionsCRUDCreate(t *testing.T, s Section) {
 	sess := session.NewSession()
-	c := New(sess)
+	c := NewController(sess)
 
 	if _, err := c.CreateSection(s); err != nil {
 		t.Fatalf("Create: Error creating section: %s", err)
@@ -331,7 +331,7 @@ func testAccSectionsCRUDCreate(t *testing.T, s Section) {
 // test fixutre can be updated.
 func testAccSectionsCRUDReadByName(t *testing.T, s Section) int {
 	sess := session.NewSession()
-	c := New(sess)
+	c := NewController(sess)
 
 	out, err := c.GetSectionByName(s.Name)
 	if err != nil {
@@ -351,7 +351,7 @@ func testAccSectionsCRUDReadByName(t *testing.T, s Section) int {
 // the 3-part read test.
 func testAccSectionsCRUDReadByID(t *testing.T, s Section) {
 	sess := session.NewSession()
-	c := New(sess)
+	c := NewController(sess)
 
 	out, err := c.GetSectionByID(s.ID)
 	if err != nil {
@@ -368,7 +368,7 @@ func testAccSectionsCRUDReadByID(t *testing.T, s Section) {
 // listing. This is the third part of the 3-part read test.
 func testAccSectionsCRUDReadByList(t *testing.T, s Section) {
 	sess := session.NewSession()
-	c := New(sess)
+	c := NewController(sess)
 
 	out, err := c.ListSections()
 	if err != nil {
@@ -387,7 +387,7 @@ func testAccSectionsCRUDReadByList(t *testing.T, s Section) {
 // acceptance test.
 func testAccSectionsCRUDUpdate(t *testing.T, s Section) {
 	sess := session.NewSession()
-	c := New(sess)
+	c := NewController(sess)
 
 	if err := c.UpdateSection(s); err != nil {
 		t.Fatalf("Error updating section: %s", err)
@@ -412,7 +412,7 @@ func testAccSectionsCRUDUpdate(t *testing.T, s Section) {
 // acceptance test.
 func testAccSectionsCRUDDelete(t *testing.T, s Section) {
 	sess := session.NewSession()
-	c := New(sess)
+	c := NewController(sess)
 
 	if err := c.DeleteSection(s.ID); err != nil {
 		t.Fatalf("Error deleting section: %s", err)
