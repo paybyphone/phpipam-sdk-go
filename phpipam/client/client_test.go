@@ -176,8 +176,7 @@ func fullSessionConfig() *session.Session {
 	return &session.Session{
 		Config: phpipamConfig(),
 		Token: session.Token{
-			String:  "foobarbazboop",
-			Expires: testDateStamp,
+			String: "foobarbazboop",
 		},
 	}
 }
@@ -208,8 +207,7 @@ func TestLoginSessionSuccess(t *testing.T) {
 	}
 
 	expected := session.Token{
-		String:  "foobarbazboop",
-		Expires: testDateStamp,
+		String: "foobarbazboop",
 	}
 	actual := client.Session.Token
 
@@ -232,49 +230,6 @@ func TestLoginSessionError(t *testing.T) {
 	}
 
 	expected := authErrorExpectedResponse
-	actual := err.Error()
-
-	if expected != actual {
-		t.Fatalf("Expected error to be %s, got %s", expected, actual)
-	}
-}
-
-func TestRefreshSessionSuccess(t *testing.T) {
-	ts := httpAuthOKTestServer()
-	defer ts.Close()
-	cfg := phpipamConfig()
-	cfg.Endpoint = ts.URL
-	sess := session.NewSession(cfg)
-	client := NewClient(sess)
-	if err := refreshSession(client.Session); err != nil {
-		t.Fatalf("Unexpected error: %#v", err)
-	}
-
-	expected := session.Token{
-		String:  "foobarbazboop",
-		Expires: testDateStamp,
-	}
-	actual := client.Session.Token
-
-	if !reflect.DeepEqual(expected, actual) {
-		t.Fatalf("Expected session token to be %#v, got %#v", expected, actual)
-	}
-}
-
-func TestRefreshSessionError(t *testing.T) {
-	ts := httpSessionErrorTestServer()
-	defer ts.Close()
-	cfg := phpipamConfig()
-	cfg.Endpoint = ts.URL
-	sess := session.NewSession(cfg)
-	client := NewClient(sess)
-	err := refreshSession(client.Session)
-
-	if err == nil {
-		t.Fatalf("Expected error, got none")
-	}
-
-	expected := sessionErrorExpectedResponse
 	actual := err.Error()
 
 	if expected != actual {

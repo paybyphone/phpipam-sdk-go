@@ -209,8 +209,7 @@ func fullSessionConfig() *session.Session {
 			Username: "nobody",
 		},
 		Token: session.Token{
-			String:  "foobarbazboop",
-			Expires: "2999-12-31 23:59:59",
+			String: "foobarbazboop",
 		},
 	}
 }

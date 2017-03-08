@@ -2,8 +2,6 @@
 package session
 
 import (
-	"time"
-
 	"github.com/imdario/mergo"
 	"github.com/paybyphone/phpipam-sdk-go/phpipam"
 )
@@ -11,13 +9,10 @@ import (
 // timeLayout represents the datetime format returned by the PHPIPAM api.
 const timeLayout = "2006-01-02 15:04:05"
 
-// Token represents a PHPIPAM session token
+// Token represents a PHPIPAM session token.
 type Token struct {
 	// The token string.
 	String string `json:"token"`
-
-	// The token's expiry date.
-	Expires string
 }
 
 // Session represents a PHPIPAM session.
@@ -41,13 +36,4 @@ func NewSession(configs ...phpipam.Config) *Session {
 	}
 
 	return s
-}
-
-// IsExpired checks to see if the token has expired via the date saved in
-// SessionToken.
-func (s *Session) IsExpired() bool {
-	then, _ := time.Parse(timeLayout, s.Token.Expires)
-	now := time.Now()
-
-	return now.After(then)
 }

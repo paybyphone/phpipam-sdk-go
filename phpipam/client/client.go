@@ -40,22 +40,6 @@ func loginSession(s *session.Session) error {
 	return nil
 }
 
-// refreshSession refreshes the session by sending a PATCH to the user
-// controller, refreshing the existing token.
-func refreshSession(s *session.Session) error {
-	var out session.Token
-	r := request.NewRequest(s)
-	r.Method = "PATCH"
-	r.URI = "/user/"
-	r.Input = &struct{}{}
-	r.Output = &out
-	if err := r.Send(); err != nil {
-		return err
-	}
-	s.Token = out
-	return nil
-}
-
 // SendRequest sends a request to a request.Request object.  It's expected that
 // references to specific data types are passed - no checking is done to make
 // sure that references are passed.
@@ -64,14 +48,9 @@ func refreshSession(s *session.Session) error {
 // and refreshing session tokens as needed.
 func (c *Client) SendRequest(method, uri string, in, out interface{}) error {
 	// Check to make sure our session is ok first.
-	switch {
-	case c.Session.Token.String == "":
+	if c.Session.Token.String == "" {
 		if err := loginSession(c.Session); err != nil {
 			return fmt.Errorf("Error logging into PHPIPAM: %s", err)
-		}
-	case c.Session.IsExpired():
-		if err := refreshSession(c.Session); err != nil {
-			return fmt.Errorf("Error refreshing PHPIPAM session token: %s", err)
 		}
 	}
 
@@ -80,8 +59,15 @@ func (c *Client) SendRequest(method, uri string, in, out interface{}) error {
 	r.URI = uri
 	r.Input = in
 	r.Output = out
-	if err := r.Send(); err != nil {
-		return err
+	err := r.Send()
+	switch {
+	case err == nil:
+		return nil
+	case err.Error() == "Error from API (403): Token expired":
+		if err := loginSession(c.Session); err != nil {
+			return fmt.Errorf("Error refreshing expired PHPIPAM session token: %s", err)
+		}
+		return r.Send()
 	}
-	return nil
+	return err
 }

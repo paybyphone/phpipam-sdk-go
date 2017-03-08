@@ -20,8 +20,7 @@ func fullSessionConfig() *Session {
 	return &Session{
 		Config: phpipamConfig(),
 		Token: Token{
-			String:  "foobarbazboop",
-			Expires: "2999-12-31 23:59:59",
+			String: "foobarbazboop",
 		},
 	}
 }
@@ -37,20 +36,5 @@ func TestNewSession(t *testing.T) {
 
 	if !reflect.DeepEqual(expected, actual) {
 		t.Fatalf("Expected session to be %#v, got %#v", expected, actual)
-	}
-}
-
-func TestIsExpiredFalse(t *testing.T) {
-	sess := fullSessionConfig()
-	if sess.IsExpired() {
-		t.Fatal("Token should not be expired, unless we have travelled far into the future")
-	}
-}
-
-func TestIsExpiredTrue(t *testing.T) {
-	sess := fullSessionConfig()
-	sess.Token.Expires = "1999-12-31 23:59:59"
-	if !sess.IsExpired() {
-		t.Fatal("Token should be expired, unless we have gone back in time")
 	}
 }
