@@ -1,1 +1,3 @@
 cover.out
+vendor/*
+!vendor/vendor.json
