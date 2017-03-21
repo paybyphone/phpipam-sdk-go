@@ -274,8 +274,7 @@ func TestDeleteAddress(t *testing.T) {
 
 // testAccAddressCRUDCreate tests the creation part of the addresss controller
 // CRUD acceptance test.
-func testAccAddressCRUDCreate(t *testing.T, a Address) {
-	sess := session.NewSession()
+func testAccAddressCRUDCreate(t *testing.T, sess *session.Session, a Address) {
 	c := NewController(sess)
 
 	if _, err := c.CreateAddress(a); err != nil {
@@ -287,8 +286,7 @@ func testAccAddressCRUDCreate(t *testing.T, a Address) {
 // acceptance test, by fetching the address by IP. This is the first part of
 // the 2-part read test, and also returns the ID of the address so that the
 // test fixutre can be updated.
-func testAccAddressCRUDReadByIP(t *testing.T, a Address) int {
-	sess := session.NewSession()
+func testAccAddressCRUDReadByIP(t *testing.T, sess *session.Session, a Address) int {
 	c := NewController(sess)
 
 	out, err := c.GetAddressesByIP(a.IPAddress)
@@ -311,8 +309,7 @@ func testAccAddressCRUDReadByIP(t *testing.T, a Address) int {
 // testAccAddressCRUDReadByID tests the read part of the addresss controller
 // acceptance test, by fetching the address by ID. This is the second part of
 // the 2-part read test.
-func testAccAddressCRUDReadByID(t *testing.T, a Address) {
-	sess := session.NewSession()
+func testAccAddressCRUDReadByID(t *testing.T, sess *session.Session, a Address) {
 	c := NewController(sess)
 
 	out, err := c.GetAddressByID(a.ID)
@@ -327,8 +324,7 @@ func testAccAddressCRUDReadByID(t *testing.T, a Address) {
 
 // testAccAddressCRUDUpdate tests the update part of the addresss controller
 // acceptance test.
-func testAccAddressCRUDUpdate(t *testing.T, a Address) {
-	sess := session.NewSession()
+func testAccAddressCRUDUpdate(t *testing.T, sess *session.Session, a Address) {
 	c := NewController(sess)
 
 	// IP and subnetID can't be in request
@@ -357,8 +353,7 @@ func testAccAddressCRUDUpdate(t *testing.T, a Address) {
 
 // testAccAddressCRUDDelete tests the delete part of the addresss controller
 // acceptance test.
-func testAccAddressCRUDDelete(t *testing.T, a Address) {
-	sess := session.NewSession()
+func testAccAddressCRUDDelete(t *testing.T, sess *session.Session, a Address) {
 	c := NewController(sess)
 
 	if _, err := c.DeleteAddress(a.ID, false); err != nil {
@@ -376,13 +371,14 @@ func testAccAddressCRUDDelete(t *testing.T, a Address) {
 func TestAccAddressCRUD(t *testing.T) {
 	testacc.VetAccConditions(t)
 
+	sess := session.NewSession()
 	address := testCreateAddressInput
-	testAccAddressCRUDCreate(t, address)
+	testAccAddressCRUDCreate(t, sess, address)
 	// tag goes to used (default ID 2) when an IP is created
 	address.Tag = 2
-	address.ID = testAccAddressCRUDReadByIP(t, address)
-	testAccAddressCRUDReadByID(t, address)
+	address.ID = testAccAddressCRUDReadByIP(t, sess, address)
+	testAccAddressCRUDReadByID(t, sess, address)
 	address.Description = "foobaz"
-	testAccAddressCRUDUpdate(t, address)
-	testAccAddressCRUDDelete(t, address)
+	testAccAddressCRUDUpdate(t, sess, address)
+	testAccAddressCRUDDelete(t, sess, address)
 }

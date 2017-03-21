@@ -315,8 +315,7 @@ func TestDeleteSection(t *testing.T) {
 
 // testAccSectionsCRUDCreate tests the creation part of the sections controller
 // CRUD acceptance test.
-func testAccSectionsCRUDCreate(t *testing.T, s Section) {
-	sess := session.NewSession()
+func testAccSectionsCRUDCreate(t *testing.T, sess *session.Session, s Section) {
 	c := NewController(sess)
 
 	if _, err := c.CreateSection(s); err != nil {
@@ -328,8 +327,7 @@ func testAccSectionsCRUDCreate(t *testing.T, s Section) {
 // acceptance test, by fetching the section by name. This is the first part of
 // the 3-part read test, and also returns the ID of the section so that the
 // test fixutre can be updated.
-func testAccSectionsCRUDReadByName(t *testing.T, s Section) int {
-	sess := session.NewSession()
+func testAccSectionsCRUDReadByName(t *testing.T, sess *session.Session, s Section) int {
 	c := NewController(sess)
 
 	out, err := c.GetSectionByName(s.Name)
@@ -348,8 +346,7 @@ func testAccSectionsCRUDReadByName(t *testing.T, s Section) int {
 // testAccSectionsCRUDReadByID tests the read part of the sections controller
 // acceptance test, by fetching the section by ID. This is the second part of
 // the 3-part read test.
-func testAccSectionsCRUDReadByID(t *testing.T, s Section) {
-	sess := session.NewSession()
+func testAccSectionsCRUDReadByID(t *testing.T, sess *session.Session, s Section) {
 	c := NewController(sess)
 
 	out, err := c.GetSectionByID(s.ID)
@@ -365,8 +362,7 @@ func testAccSectionsCRUDReadByID(t *testing.T, s Section) {
 // testAccSectionsCRUDReadByList tests the read part of the sections controller
 // acceptance test, by fetching the section by searching for it in the sections
 // listing. This is the third part of the 3-part read test.
-func testAccSectionsCRUDReadByList(t *testing.T, s Section) {
-	sess := session.NewSession()
+func testAccSectionsCRUDReadByList(t *testing.T, sess *session.Session, s Section) {
 	c := NewController(sess)
 
 	out, err := c.ListSections()
@@ -384,8 +380,7 @@ func testAccSectionsCRUDReadByList(t *testing.T, s Section) {
 
 // testAccSectionsCRUDUpdate tests the update part of the sections controller
 // acceptance test.
-func testAccSectionsCRUDUpdate(t *testing.T, s Section) {
-	sess := session.NewSession()
+func testAccSectionsCRUDUpdate(t *testing.T, sess *session.Session, s Section) {
 	c := NewController(sess)
 
 	if err := c.UpdateSection(s); err != nil {
@@ -409,8 +404,7 @@ func testAccSectionsCRUDUpdate(t *testing.T, s Section) {
 
 // testAccSectionsCRUDDelete tests the delete part of the sections controller
 // acceptance test.
-func testAccSectionsCRUDDelete(t *testing.T, s Section) {
-	sess := session.NewSession()
+func testAccSectionsCRUDDelete(t *testing.T, sess *session.Session, s Section) {
 	c := NewController(sess)
 
 	if err := c.DeleteSection(s.ID); err != nil {
@@ -428,12 +422,13 @@ func testAccSectionsCRUDDelete(t *testing.T, s Section) {
 func TestAccSectionsCRUD(t *testing.T) {
 	testacc.VetAccConditions(t)
 
+	sess := session.NewSession()
 	section := testCreateSectionInput
-	testAccSectionsCRUDCreate(t, section)
-	section.ID = testAccSectionsCRUDReadByName(t, section)
-	testAccSectionsCRUDReadByID(t, section)
-	testAccSectionsCRUDReadByList(t, section)
+	testAccSectionsCRUDCreate(t, sess, section)
+	section.ID = testAccSectionsCRUDReadByName(t, sess, section)
+	testAccSectionsCRUDReadByID(t, sess, section)
+	testAccSectionsCRUDReadByList(t, sess, section)
 	section.Name = "bazboop"
-	testAccSectionsCRUDUpdate(t, section)
-	testAccSectionsCRUDDelete(t, section)
+	testAccSectionsCRUDUpdate(t, sess, section)
+	testAccSectionsCRUDDelete(t, sess, section)
 }

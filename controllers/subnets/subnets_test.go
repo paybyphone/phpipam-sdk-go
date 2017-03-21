@@ -362,8 +362,7 @@ func TestDeleteSubnet(t *testing.T) {
 
 // testAccSubnetCRUDCreate tests the creation part of the subnets controller
 // CRUD acceptance test.
-func testAccSubnetCRUDCreate(t *testing.T, s Subnet) {
-	sess := session.NewSession()
+func testAccSubnetCRUDCreate(t *testing.T, sess *session.Session, s Subnet) {
 	c := NewController(sess)
 
 	if _, err := c.CreateSubnet(s); err != nil {
@@ -375,8 +374,7 @@ func testAccSubnetCRUDCreate(t *testing.T, s Subnet) {
 // acceptance test, by fetching the subnet by CIDR. This is the first part of
 // the 3-part read test, and also returns the ID of the subnet so that the
 // test fixutre can be updated.
-func testAccSubnetCRUDReadByCIDR(t *testing.T, s Subnet) int {
-	sess := session.NewSession()
+func testAccSubnetCRUDReadByCIDR(t *testing.T, sess *session.Session, s Subnet) int {
 	c := NewController(sess)
 
 	out, err := c.GetSubnetsByCIDR(fmt.Sprintf("%s/%d", s.SubnetAddress, s.Mask))
@@ -400,8 +398,7 @@ func testAccSubnetCRUDReadByCIDR(t *testing.T, s Subnet) int {
 // controller acceptance test, by fetching the first available address in the
 // created subnet. This is the second part of the 3-part read test, and also
 // returns the ID of the subnet so that the test fixutre can be updated.
-func testAccSubnetCRUDReadFirstFreeAddress(t *testing.T, s Subnet) {
-	sess := session.NewSession()
+func testAccSubnetCRUDReadFirstFreeAddress(t *testing.T, sess *session.Session, s Subnet) {
 	c := NewController(sess)
 
 	out, err := c.GetFirstFreeAddress(s.ID)
@@ -417,8 +414,7 @@ func testAccSubnetCRUDReadFirstFreeAddress(t *testing.T, s Subnet) {
 // testAccSubnetCRUDReadByID tests the read part of the subnets controller
 // acceptance test, by fetching the subnet by ID. This is the third part of
 // the 3-part read test.
-func testAccSubnetCRUDReadByID(t *testing.T, s Subnet) {
-	sess := session.NewSession()
+func testAccSubnetCRUDReadByID(t *testing.T, sess *session.Session, s Subnet) {
 	c := NewController(sess)
 
 	out, err := c.GetSubnetByID(s.ID)
@@ -433,8 +429,7 @@ func testAccSubnetCRUDReadByID(t *testing.T, s Subnet) {
 
 // testAccSubnetCRUDUpdate tests the update part of the subnets controller
 // acceptance test.
-func testAccSubnetCRUDUpdate(t *testing.T, s Subnet) {
-	sess := session.NewSession()
+func testAccSubnetCRUDUpdate(t *testing.T, sess *session.Session, s Subnet) {
 	c := NewController(sess)
 
 	// Address or mask can't be in an update request.
@@ -463,8 +458,7 @@ func testAccSubnetCRUDUpdate(t *testing.T, s Subnet) {
 
 // testAccSubnetCRUDDelete tests the delete part of the subnets controller
 // acceptance test.
-func testAccSubnetCRUDDelete(t *testing.T, s Subnet) {
-	sess := session.NewSession()
+func testAccSubnetCRUDDelete(t *testing.T, sess *session.Session, s Subnet) {
 	c := NewController(sess)
 
 	if _, err := c.DeleteSubnet(s.ID); err != nil {
@@ -482,11 +476,12 @@ func testAccSubnetCRUDDelete(t *testing.T, s Subnet) {
 func TestAccSubnetCRUD(t *testing.T) {
 	testacc.VetAccConditions(t)
 
+	sess := session.NewSession()
 	subnet := testCreateSubnetInput
-	testAccSubnetCRUDCreate(t, subnet)
-	subnet.ID = testAccSubnetCRUDReadByCIDR(t, subnet)
-	testAccSubnetCRUDReadByID(t, subnet)
+	testAccSubnetCRUDCreate(t, sess, subnet)
+	subnet.ID = testAccSubnetCRUDReadByCIDR(t, sess, subnet)
+	testAccSubnetCRUDReadByID(t, sess, subnet)
 	subnet.Description = "Updating subnet!"
-	testAccSubnetCRUDUpdate(t, subnet)
-	testAccSubnetCRUDDelete(t, subnet)
+	testAccSubnetCRUDUpdate(t, sess, subnet)
+	testAccSubnetCRUDDelete(t, sess, subnet)
 }

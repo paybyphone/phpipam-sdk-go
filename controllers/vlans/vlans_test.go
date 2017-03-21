@@ -247,8 +247,7 @@ func TestDeleteVLAN(t *testing.T) {
 
 // testAccVLANCRUDCreate tests the creation part of the vlans controller
 // CRUD acceptance test.
-func testAccVLANCRUDCreate(t *testing.T, v VLAN) {
-	sess := session.NewSession()
+func testAccVLANCRUDCreate(t *testing.T, sess *session.Session, v VLAN) {
 	c := NewController(sess)
 
 	if _, err := c.CreateVLAN(v); err != nil {
@@ -260,8 +259,7 @@ func testAccVLANCRUDCreate(t *testing.T, v VLAN) {
 // acceptance test, by fetching the vlan by number. This is the first part of
 // the 2-part read test, and also returns the ID of the vlan so that the
 // test fixutre can be updated.
-func testAccVLANCRUDReadByNumber(t *testing.T, v VLAN) int {
-	sess := session.NewSession()
+func testAccVLANCRUDReadByNumber(t *testing.T, sess *session.Session, v VLAN) int {
 	c := NewController(sess)
 
 	out, err := c.GetVLANsByNumber(v.Number)
@@ -284,8 +282,7 @@ func testAccVLANCRUDReadByNumber(t *testing.T, v VLAN) int {
 // testAccVLANCRUDReadByID tests the read part of the vlans controller
 // acceptance test, by fetching the vlan by ID. This is the second part of
 // the 2-part read test.
-func testAccVLANCRUDReadByID(t *testing.T, v VLAN) {
-	sess := session.NewSession()
+func testAccVLANCRUDReadByID(t *testing.T, sess *session.Session, v VLAN) {
 	c := NewController(sess)
 
 	out, err := c.GetVLANByID(v.ID)
@@ -300,8 +297,7 @@ func testAccVLANCRUDReadByID(t *testing.T, v VLAN) {
 
 // testAccVLANCRUDUpdate tests the update part of the vlans controller
 // acceptance test.
-func testAccVLANCRUDUpdate(t *testing.T, v VLAN) {
-	sess := session.NewSession()
+func testAccVLANCRUDUpdate(t *testing.T, sess *session.Session, v VLAN) {
 	c := NewController(sess)
 
 	if _, err := c.UpdateVLAN(v); err != nil {
@@ -325,8 +321,7 @@ func testAccVLANCRUDUpdate(t *testing.T, v VLAN) {
 
 // testAccVLANCRUDDelete tests the delete part of the vlans controller
 // acceptance test.
-func testAccVLANCRUDDelete(t *testing.T, v VLAN) {
-	sess := session.NewSession()
+func testAccVLANCRUDDelete(t *testing.T, sess *session.Session, v VLAN) {
 	c := NewController(sess)
 
 	if _, err := c.DeleteVLAN(v.ID); err != nil {
@@ -344,13 +339,14 @@ func testAccVLANCRUDDelete(t *testing.T, v VLAN) {
 func TestAccVLANCRUD(t *testing.T) {
 	testacc.VetAccConditions(t)
 
+	sess := session.NewSession()
 	vlan := testCreateVLANInput
-	testAccVLANCRUDCreate(t, vlan)
+	testAccVLANCRUDCreate(t, sess, vlan)
 	// Add the domain ID here as 1 is the default.
 	vlan.DomainID = 1
-	vlan.ID = testAccVLANCRUDReadByNumber(t, vlan)
-	testAccVLANCRUDReadByID(t, vlan)
+	vlan.ID = testAccVLANCRUDReadByNumber(t, sess, vlan)
+	testAccVLANCRUDReadByID(t, sess, vlan)
 	vlan.Name = "bazlan"
-	testAccVLANCRUDUpdate(t, vlan)
-	testAccVLANCRUDDelete(t, vlan)
+	testAccVLANCRUDUpdate(t, sess, vlan)
+	testAccVLANCRUDDelete(t, sess, vlan)
 }
