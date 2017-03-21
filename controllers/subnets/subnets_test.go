@@ -186,6 +186,15 @@ const testGetSubnetsByCIDROutputJSON = `
 }
 `
 
+const testGetFirstFreeAddressOutputExpected = "10.10.1.1"
+const testGetFirstFreeAddressOutputJSON = `
+{
+  "code": 200,
+  "success": true,
+  "data": "10.10.1.1"
+}
+`
+
 var testUpdateSubnetInput = Subnet{
 	ID:          8,
 	Description: "foobat",
@@ -296,6 +305,24 @@ func TestGetSubnetsByCIDR(t *testing.T) {
 	}
 }
 
+func TestGetFirstFreeAddress(t *testing.T) {
+	ts := httpOKTestServer(testGetFirstFreeAddressOutputJSON)
+	defer ts.Close()
+	sess := fullSessionConfig()
+	sess.Config.Endpoint = ts.URL
+	client := NewController(sess)
+
+	expected := testGetFirstFreeAddressOutputExpected
+	actual, err := client.GetFirstFreeAddress(3)
+	if err != nil {
+		t.Fatalf("Bad: %s", err)
+	}
+
+	if expected != actual {
+		t.Fatalf("Expected %#v, got %#v", expected, actual)
+	}
+}
+
 func TestUpdateSubnet(t *testing.T) {
 	ts := httpOKTestServer(testUpdateSubnetOutputJSON)
 	defer ts.Close()
@@ -346,7 +373,7 @@ func testAccSubnetCRUDCreate(t *testing.T, s Subnet) {
 
 // testAccSubnetCRUDReadByCIDR tests the read part of the subnets controller
 // acceptance test, by fetching the subnet by CIDR. This is the first part of
-// the 2-part read test, and also returns the ID of the subnet so that the
+// the 3-part read test, and also returns the ID of the subnet so that the
 // test fixutre can be updated.
 func testAccSubnetCRUDReadByCIDR(t *testing.T, s Subnet) int {
 	sess := session.NewSession()
@@ -369,9 +396,27 @@ func testAccSubnetCRUDReadByCIDR(t *testing.T, s Subnet) int {
 	return 0
 }
 
+// testAccSubnetCRUDReadFirstFreeAddress tests the read part of the subnets
+// controller acceptance test, by fetching the first available address in the
+// created subnet. This is the second part of the 3-part read test, and also
+// returns the ID of the subnet so that the test fixutre can be updated.
+func testAccSubnetCRUDReadFirstFreeAddress(t *testing.T, s Subnet) {
+	sess := session.NewSession()
+	c := NewController(sess)
+
+	out, err := c.GetFirstFreeAddress(s.ID)
+	if err != nil {
+		t.Fatalf("Can't read first free address: %s", err)
+	}
+
+	if out != "10.10.3.1" {
+		t.Fatalf("Expected first free address to be 10.10.3.1, got %s", out)
+	}
+}
+
 // testAccSubnetCRUDReadByID tests the read part of the subnets controller
-// acceptance test, by fetching the subnet by ID. This is the second part of
-// the 2-part read test.
+// acceptance test, by fetching the subnet by ID. This is the third part of
+// the 3-part read test.
 func testAccSubnetCRUDReadByID(t *testing.T, s Subnet) {
 	sess := session.NewSession()
 	c := NewController(sess)
