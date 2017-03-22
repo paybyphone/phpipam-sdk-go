@@ -19,7 +19,7 @@ type Subnet struct {
 	SubnetAddress string `json:"subnet,omitempty"`
 
 	// The subnet's mask in number of bits (i.e. 24).
-	Mask int `json:"mask,string,omitempty"`
+	Mask phpipam.JSONIntString `json:"mask,omitempty"`
 
 	// A detailed description of the subnet.
 	Description string `json:"description,omitempty"`
@@ -73,9 +73,6 @@ type Subnet struct {
 
 	// Marks the subnet as used.
 	IsFull phpipam.BoolIntString `json:"isFull,omitempty"`
-
-	// The tag ID for the subnet.
-	State int `json:"state,string,omitempty"`
 
 	// The threshold of the subnet.
 	Threshold int `json:"threshold,string,omitempty"`
