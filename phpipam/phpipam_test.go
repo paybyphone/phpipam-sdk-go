@@ -14,6 +14,19 @@ type testBoolIntStringType struct {
 	Foo BoolIntString `json:"foo"`
 }
 
+const testJSONIntStringJSONZeroEmpty = `{"foo":""}`
+const testJSONIntStringJSONZeroNumber = `{"foo":"0"}`
+const testJSONIntStringJSONNonZeroNumber = `{"foo":"2"}`
+const testJSONIntStringJSONError = `{"foo":"a"}`
+
+type testJSONIntStringType struct {
+	Foo JSONIntString `json:"foo"`
+}
+
+type testJSONIntStringTypeOmitEmpty struct {
+	Foo JSONIntString `json:"foo,omitempty"`
+}
+
 func setPHPIPAMenv() {
 	os.Setenv("PHPIPAM_APP_ID", "foobar")
 	os.Setenv("PHPIPAM_ENDPOINT_ADDR", "https://example.com/phpipam/api")
@@ -120,6 +133,80 @@ func TestBoolIntStringMarshalJSONFalse(t *testing.T) {
 		t.Fatalf("Bad: %s", err)
 	}
 	expected := testBoolIntStringJSONFalse
+	actual := string(b)
+	if expected != actual {
+		t.Fatalf("Expected %s, got %s", expected, actual)
+	}
+}
+
+func TestJSONIntStringUnmarshalJSONZeroEmpty(t *testing.T) {
+	var actual testJSONIntStringType
+	if err := json.Unmarshal([]byte(testJSONIntStringJSONZeroEmpty), &actual); err != nil {
+		t.Fatalf("Bad: %s", err)
+	}
+	if actual.Foo != 0 {
+		t.Fatalf("Expected value to be 0, got %d", actual)
+	}
+}
+
+func TestJSONIntStringUnmarshalJSONZeroNumber(t *testing.T) {
+	var actual testJSONIntStringType
+	if err := json.Unmarshal([]byte(testJSONIntStringJSONZeroNumber), &actual); err != nil {
+		t.Fatalf("Bad: %s", err)
+	}
+	if actual.Foo != 0 {
+		t.Fatalf("Expected value to be 0, got %d", actual)
+	}
+}
+
+func TestJSONIntStringUnmarshalJSONNonZeroNumber(t *testing.T) {
+	var actual testJSONIntStringType
+	if err := json.Unmarshal([]byte(testJSONIntStringJSONNonZeroNumber), &actual); err != nil {
+		t.Fatalf("Bad: %s", err)
+	}
+	if actual.Foo != 2 {
+		t.Fatalf("Expected value to be 2, got %d", actual)
+	}
+}
+
+func TestJSONIntStringUnmarshalJSONError(t *testing.T) {
+	var v testJSONIntStringType
+	err := json.Unmarshal([]byte(testJSONIntStringJSONError), &v)
+	if err == nil {
+		t.Fatalf("Expected error, got none")
+	}
+
+	expected := "json: cannot unmarshal int into Go struct field testJSONIntStringType.foo of type string"
+	actual := err.Error()
+	if expected != actual {
+		t.Fatalf("Expected %s, got %s", expected, actual)
+	}
+}
+
+func TestJSONIntStringMarshalJSONZero(t *testing.T) {
+	v := testJSONIntStringType{
+		Foo: 0,
+	}
+	b, err := json.Marshal(v)
+	if err != nil {
+		t.Fatalf("Bad: %s", err)
+	}
+	expected := testJSONIntStringJSONZeroNumber
+	actual := string(b)
+	if expected != actual {
+		t.Fatalf("Expected %s, got %s", expected, actual)
+	}
+}
+
+func TestJSONIntStringMarshalJSONOmitEmpty(t *testing.T) {
+	v := testJSONIntStringTypeOmitEmpty{
+		Foo: 0,
+	}
+	b, err := json.Marshal(v)
+	if err != nil {
+		t.Fatalf("Bad: %s", err)
+	}
+	expected := "{}"
 	actual := string(b)
 	if expected != actual {
 		t.Fatalf("Expected %s, got %s", expected, actual)
