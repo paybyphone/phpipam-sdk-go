@@ -117,8 +117,8 @@ func (bis *BoolIntString) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// JSONIntString is a type for representing an IntString form, but with "" also
-// representing a zero value.
+// JSONIntString is a type for representing an IntString JSON value, but with
+// "" also representing a zero value.
 type JSONIntString int
 
 // MarshalJSON implements json.Marshaler for the JSONIntString type.
