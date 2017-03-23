@@ -6,7 +6,6 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/paybyphone/phpipam-sdk-go/controllers/subnets"
 	"github.com/paybyphone/phpipam-sdk-go/phpipam"
 	"github.com/paybyphone/phpipam-sdk-go/phpipam/session"
@@ -526,7 +525,7 @@ func TestGetSubnetsInSection(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(expected, actual) {
-		t.Fatalf("Expected %s, got %s", spew.Sdump(expected), spew.Sdump(actual))
+		t.Fatalf("Expected %#v, got %#v", expected, actual)
 	}
 }
 
@@ -691,6 +690,6 @@ func TestAccGetSubnetsInSection(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(expected, actual) {
-		t.Fatalf("Expected %s, got %s", spew.Sdump(expected), spew.Sdump(actual))
+		t.Fatalf("Expected %#v, got %#v", expected, actual)
 	}
 }
