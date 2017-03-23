@@ -5,6 +5,7 @@ package subnets
 import (
 	"fmt"
 
+	"github.com/paybyphone/phpipam-sdk-go/controllers/addresses"
 	"github.com/paybyphone/phpipam-sdk-go/phpipam"
 	"github.com/paybyphone/phpipam-sdk-go/phpipam/client"
 	"github.com/paybyphone/phpipam-sdk-go/phpipam/session"
@@ -130,6 +131,13 @@ func (c *Controller) GetSubnetsByCIDR(cidr string) (out []Subnet, err error) {
 // returning data.
 func (c *Controller) GetFirstFreeAddress(id int) (out string, err error) {
 	err = c.SendRequest("GET", fmt.Sprintf("/subnets/%d/first_free/", id), &struct{}{}, &out)
+	return
+}
+
+// GetAddressesInSubnet GETs the IP addresses for a specific subnet, via a
+// supplied subnet ID.
+func (c *Controller) GetAddressesInSubnet(id int) (out []addresses.Address, err error) {
+	err = c.SendRequest("GET", fmt.Sprintf("/subnets/%d/addresses/", id), &struct{}{}, &out)
 	return
 }
 

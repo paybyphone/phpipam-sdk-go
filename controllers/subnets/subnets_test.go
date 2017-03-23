@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/paybyphone/phpipam-sdk-go/controllers/addresses"
 	"github.com/paybyphone/phpipam-sdk-go/phpipam"
 	"github.com/paybyphone/phpipam-sdk-go/phpipam/session"
 	"github.com/paybyphone/phpipam-sdk-go/testacc"
@@ -195,6 +196,197 @@ const testGetFirstFreeAddressOutputJSON = `
 }
 `
 
+var testGetAddressesInSubnetExpected = []addresses.Address{
+	addresses.Address{
+		ID:          1,
+		SubnetID:    3,
+		IPAddress:   "10.10.1.3",
+		IsGateway:   false,
+		Description: "Server1",
+		Hostname:    "server1.cust1.local",
+		Tag:         2,
+		LastSeen:    "0000-00-00 00:00:00",
+	},
+	addresses.Address{
+		ID:          2,
+		SubnetID:    3,
+		IPAddress:   "10.10.1.4",
+		IsGateway:   false,
+		Description: "Server2",
+		Hostname:    "server2.cust1.local",
+		Tag:         2,
+		LastSeen:    "0000-00-00 00:00:00",
+	},
+	addresses.Address{
+		ID:          3,
+		SubnetID:    3,
+		IPAddress:   "10.10.1.5",
+		IsGateway:   false,
+		Description: "Server3",
+		Hostname:    "server3.cust1.local",
+		Tag:         3,
+		LastSeen:    "0000-00-00 00:00:00",
+	},
+	addresses.Address{
+		ID:          4,
+		SubnetID:    3,
+		IPAddress:   "10.10.1.6",
+		IsGateway:   false,
+		Description: "Server4",
+		Hostname:    "server4.cust1.local",
+		Tag:         3,
+		LastSeen:    "0000-00-00 00:00:00",
+	},
+	addresses.Address{
+		ID:          5,
+		SubnetID:    3,
+		IPAddress:   "10.10.1.245",
+		IsGateway:   false,
+		Description: "Gateway",
+		Tag:         2,
+		LastSeen:    "0000-00-00 00:00:00",
+	},
+}
+
+const testGetAddressesInSubnetJSON = `
+{
+  "code": 200,
+  "success": true,
+  "data": [
+    {
+      "id": "1",
+      "subnetId": "3",
+      "ip": "10.10.1.3",
+      "is_gateway": "0",
+      "description": "Server1",
+      "hostname": "server1.cust1.local",
+      "mac": null,
+      "owner": null,
+      "tag": "2",
+      "deviceId": null,
+      "port": null,
+      "note": null,
+      "lastSeen": "0000-00-00 00:00:00",
+      "excludePing": "0",
+      "PTRignore": "0",
+      "PTR": "0",
+      "firewallAddressObject": null,
+      "editDate": null,
+      "links": [
+        {
+          "rel": "self",
+          "href": "/api/test/addresses/1/"
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "subnetId": "3",
+      "ip": "10.10.1.4",
+      "is_gateway": "0",
+      "description": "Server2",
+      "hostname": "server2.cust1.local",
+      "mac": null,
+      "owner": null,
+      "tag": "2",
+      "deviceId": null,
+      "port": null,
+      "note": null,
+      "lastSeen": "0000-00-00 00:00:00",
+      "excludePing": "0",
+      "PTRignore": "0",
+      "PTR": "0",
+      "firewallAddressObject": null,
+      "editDate": null,
+      "links": [
+        {
+          "rel": "self",
+          "href": "/api/test/addresses/2/"
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "subnetId": "3",
+      "ip": "10.10.1.5",
+      "is_gateway": "0",
+      "description": "Server3",
+      "hostname": "server3.cust1.local",
+      "mac": null,
+      "owner": null,
+      "tag": "3",
+      "deviceId": null,
+      "port": null,
+      "note": null,
+      "lastSeen": "0000-00-00 00:00:00",
+      "excludePing": "0",
+      "PTRignore": "0",
+      "PTR": "0",
+      "firewallAddressObject": null,
+      "editDate": null,
+      "links": [
+        {
+          "rel": "self",
+          "href": "/api/test/addresses/3/"
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "subnetId": "3",
+      "ip": "10.10.1.6",
+      "is_gateway": "0",
+      "description": "Server4",
+      "hostname": "server4.cust1.local",
+      "mac": null,
+      "owner": null,
+      "tag": "3",
+      "deviceId": null,
+      "port": null,
+      "note": null,
+      "lastSeen": "0000-00-00 00:00:00",
+      "excludePing": "0",
+      "PTRignore": "0",
+      "PTR": "0",
+      "firewallAddressObject": null,
+      "editDate": null,
+      "links": [
+        {
+          "rel": "self",
+          "href": "/api/test/addresses/4/"
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "subnetId": "3",
+      "ip": "10.10.1.245",
+      "is_gateway": "0",
+      "description": "Gateway",
+      "hostname": null,
+      "mac": null,
+      "owner": null,
+      "tag": "2",
+      "deviceId": null,
+      "port": null,
+      "note": null,
+      "lastSeen": "0000-00-00 00:00:00",
+      "excludePing": "0",
+      "PTRignore": "0",
+      "PTR": "0",
+      "firewallAddressObject": null,
+      "editDate": null,
+      "links": [
+        {
+          "rel": "self",
+          "href": "/api/test/addresses/5/"
+        }
+      ]
+    }
+  ]
+}
+`
+
 var testUpdateSubnetInput = Subnet{
 	ID:          8,
 	Description: "foobat",
@@ -319,6 +511,24 @@ func TestGetFirstFreeAddress(t *testing.T) {
 	}
 
 	if expected != actual {
+		t.Fatalf("Expected %#v, got %#v", expected, actual)
+	}
+}
+
+func TestGetAddressesInSubnet(t *testing.T) {
+	ts := httpOKTestServer(testGetAddressesInSubnetJSON)
+	defer ts.Close()
+	sess := fullSessionConfig()
+	sess.Config.Endpoint = ts.URL
+	client := NewController(sess)
+
+	expected := testGetAddressesInSubnetExpected
+	actual, err := client.GetAddressesInSubnet(3)
+	if err != nil {
+		t.Fatalf("Bad: %s", err)
+	}
+
+	if !reflect.DeepEqual(expected, actual) {
 		t.Fatalf("Expected %#v, got %#v", expected, actual)
 	}
 }
@@ -484,4 +694,23 @@ func TestAccSubnetCRUD(t *testing.T) {
 	subnet.Description = "Updating subnet!"
 	testAccSubnetCRUDUpdate(t, sess, subnet)
 	testAccSubnetCRUDDelete(t, sess, subnet)
+}
+
+// TestAccGetAddressesInSubnet tests GetAddressesInSubnet against a live PHPIPAM
+// instance.
+func TestAccGetAddressesInSubnet(t *testing.T) {
+	testacc.VetAccConditions(t)
+
+	sess := session.NewSession()
+	client := NewController(sess)
+
+	expected := testGetAddressesInSubnetExpected
+	actual, err := client.GetAddressesInSubnet(3)
+	if err != nil {
+		t.Fatalf("Bad: %s", err)
+	}
+
+	if !reflect.DeepEqual(expected, actual) {
+		t.Fatalf("Expected %#v, got %#v", expected, actual)
+	}
 }
