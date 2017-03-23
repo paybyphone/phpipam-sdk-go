@@ -6,6 +6,8 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/davecgh/go-spew/spew"
+	"github.com/paybyphone/phpipam-sdk-go/controllers/subnets"
 	"github.com/paybyphone/phpipam-sdk-go/phpipam"
 	"github.com/paybyphone/phpipam-sdk-go/phpipam/session"
 	"github.com/paybyphone/phpipam-sdk-go/testacc"
@@ -159,6 +161,229 @@ const testGetSectionOutputJSON = `
 }
 `
 
+const testGetSubnetsInSectionOutputJSON = `
+{
+  "code": 200,
+  "success": true,
+  "data": [
+    {
+      "id": "5",
+      "subnet": "0.0.0.0",
+      "mask": "",
+      "sectionId": "1",
+      "description": "My folder",
+      "firewallAddressObject": null,
+      "vrfId": "0",
+      "masterSubnetId": "0",
+      "allowRequests": "0",
+      "vlanId": "0",
+      "showName": "0",
+      "device": "0",
+      "permissions": "{\"3\":\"1\",\"2\":\"2\"}",
+      "pingSubnet": "0",
+      "discoverSubnet": "0",
+      "DNSrecursive": "0",
+      "DNSrecords": "0",
+      "nameserverId": "0",
+      "scanAgent": null,
+      "isFolder": "1",
+      "isFull": "0",
+      "tag": "2",
+      "editDate": null,
+      "links": [
+        {
+          "rel": "self",
+          "href": "/api/test/subnets/5/"
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "subnet": "10.10.0.0",
+      "mask": "16",
+      "sectionId": "1",
+      "description": "Business customers",
+      "firewallAddressObject": null,
+      "vrfId": "0",
+      "masterSubnetId": "0",
+      "allowRequests": "1",
+      "vlanId": "0",
+      "showName": "1",
+      "device": "0",
+      "permissions": "{\"3\":\"1\",\"2\":\"2\"}",
+      "pingSubnet": "0",
+      "discoverSubnet": "0",
+      "DNSrecursive": "0",
+      "DNSrecords": "0",
+      "nameserverId": "0",
+      "scanAgent": null,
+      "isFolder": "0",
+      "isFull": "0",
+      "tag": "2",
+      "editDate": null,
+      "links": [
+        {
+          "rel": "self",
+          "href": "/api/test/subnets/2/"
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "subnet": "10.10.1.0",
+      "mask": "24",
+      "sectionId": "1",
+      "description": "Customer 1",
+      "firewallAddressObject": null,
+      "vrfId": "0",
+      "masterSubnetId": "2",
+      "allowRequests": "1",
+      "vlanId": "0",
+      "showName": "1",
+      "device": "0",
+      "permissions": "{\"3\":\"1\",\"2\":\"2\"}",
+      "pingSubnet": "0",
+      "discoverSubnet": "0",
+      "DNSrecursive": "0",
+      "DNSrecords": "0",
+      "nameserverId": "0",
+      "scanAgent": null,
+      "isFolder": "0",
+      "isFull": "0",
+      "tag": "2",
+      "editDate": null,
+      "links": [
+        {
+          "rel": "self",
+          "href": "/api/test/subnets/3/"
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "subnet": "10.10.2.0",
+      "mask": "24",
+      "sectionId": "1",
+      "description": "Customer 2",
+      "firewallAddressObject": null,
+      "vrfId": "0",
+      "masterSubnetId": "2",
+      "allowRequests": "1",
+      "vlanId": "0",
+      "showName": "1",
+      "device": "0",
+      "permissions": "{\"3\":\"1\",\"2\":\"2\"}",
+      "pingSubnet": "0",
+      "discoverSubnet": "0",
+      "DNSrecursive": "0",
+      "DNSrecords": "0",
+      "nameserverId": "0",
+      "scanAgent": null,
+      "isFolder": "0",
+      "isFull": "0",
+      "tag": "2",
+      "editDate": null,
+      "links": [
+        {
+          "rel": "self",
+          "href": "/api/test/subnets/4/"
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "subnet": "10.65.22.0",
+      "mask": "24",
+      "sectionId": "1",
+      "description": "DHCP range",
+      "firewallAddressObject": null,
+      "vrfId": "0",
+      "masterSubnetId": "5",
+      "allowRequests": "0",
+      "vlanId": "0",
+      "showName": "1",
+      "device": "0",
+      "permissions": "{\"3\":\"1\",\"2\":\"2\"}",
+      "pingSubnet": "0",
+      "discoverSubnet": "0",
+      "DNSrecursive": "0",
+      "DNSrecords": "0",
+      "nameserverId": "0",
+      "scanAgent": null,
+      "isFolder": "0",
+      "isFull": "0",
+      "tag": "2",
+      "editDate": null,
+      "links": [
+        {
+          "rel": "self",
+          "href": "/api/test/subnets/6/"
+        }
+      ]
+    }
+  ]
+}
+`
+
+var testGetSubnetsInSectionExpected = []subnets.Subnet{
+	subnets.Subnet{
+		ID:             5,
+		SubnetAddress:  "0.0.0.0",
+		Mask:           0,
+		SectionID:      1,
+		MasterSubnetID: 0,
+		AllowRequests:  false,
+		Description:    "My folder",
+		ShowName:       false,
+		Permissions:    "{\"3\":\"1\",\"2\":\"2\"}",
+		IsFolder:       true,
+	},
+	subnets.Subnet{
+		ID:             2,
+		SubnetAddress:  "10.10.0.0",
+		Mask:           16,
+		SectionID:      1,
+		MasterSubnetID: 0,
+		AllowRequests:  true,
+		Description:    "Business customers",
+		ShowName:       true,
+		Permissions:    "{\"3\":\"1\",\"2\":\"2\"}",
+	},
+	subnets.Subnet{
+		ID:             3,
+		SubnetAddress:  "10.10.1.0",
+		Mask:           24,
+		SectionID:      1,
+		MasterSubnetID: 2,
+		AllowRequests:  true,
+		Description:    "Customer 1",
+		ShowName:       true,
+		Permissions:    "{\"3\":\"1\",\"2\":\"2\"}",
+	},
+	subnets.Subnet{
+		ID:             4,
+		SubnetAddress:  "10.10.2.0",
+		Mask:           24,
+		SectionID:      1,
+		MasterSubnetID: 2,
+		AllowRequests:  true,
+		Description:    "Customer 2",
+		ShowName:       true,
+		Permissions:    "{\"3\":\"1\",\"2\":\"2\"}",
+	},
+	subnets.Subnet{
+		ID:             6,
+		SubnetAddress:  "10.65.22.0",
+		Mask:           24,
+		SectionID:      1,
+		MasterSubnetID: 5,
+		AllowRequests:  false,
+		Description:    "DHCP range",
+		ShowName:       true,
+		Permissions:    "{\"3\":\"1\",\"2\":\"2\"}",
+	},
+}
+
 var testUpdateSectionInput = Section{
 	ID:   3,
 	Name: "foobaz",
@@ -284,6 +509,24 @@ func TestGetSectionByName(t *testing.T) {
 
 	if !reflect.DeepEqual(expected, actual) {
 		t.Fatalf("Expected %#v, got %#v", expected, actual)
+	}
+}
+
+func TestGetSubnetsInSection(t *testing.T) {
+	ts := httpOKTestServer(testGetSubnetsInSectionOutputJSON)
+	defer ts.Close()
+	sess := fullSessionConfig()
+	sess.Config.Endpoint = ts.URL
+	client := NewController(sess)
+
+	expected := testGetSubnetsInSectionExpected
+	actual, err := client.GetSubnetsInSection(1)
+	if err != nil {
+		t.Fatalf("Bad: %s", err)
+	}
+
+	if !reflect.DeepEqual(expected, actual) {
+		t.Fatalf("Expected %s, got %s", spew.Sdump(expected), spew.Sdump(actual))
 	}
 }
 
@@ -431,4 +674,23 @@ func TestAccSectionsCRUD(t *testing.T) {
 	section.Name = "bazboop"
 	testAccSectionsCRUDUpdate(t, sess, section)
 	testAccSectionsCRUDDelete(t, sess, section)
+}
+
+// TestAccGetSubnetsInSection tests GetSubnetsInSection against a live PHPIPAM
+// instance.
+func TestAccGetSubnetsInSection(t *testing.T) {
+	testacc.VetAccConditions(t)
+
+	sess := session.NewSession()
+	client := NewController(sess)
+
+	expected := testGetSubnetsInSectionExpected
+	actual, err := client.GetSubnetsInSection(1)
+	if err != nil {
+		t.Fatalf("Bad: %s", err)
+	}
+
+	if !reflect.DeepEqual(expected, actual) {
+		t.Fatalf("Expected %s, got %s", spew.Sdump(expected), spew.Sdump(actual))
+	}
 }
