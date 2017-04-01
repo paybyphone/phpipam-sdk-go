@@ -16,9 +16,9 @@
 --
 
 -- Custom fields
-ALTER TABLE `ipaddresses` ADD COLUMN `CustomTestAddresses` varchar(255) CHARACTER SET utf8 DEFAULT 'addresses' NOT NULL COMMENT 'Test field for addresses controller';
-ALTER TABLE `subnets` ADD COLUMN `CustomTestSubnets` varchar(255) CHARACTER SET utf8 DEFAULT 'subnets' NOT NULL COMMENT 'Test field for subnets controller';
-ALTER TABLE `vlans` ADD COLUMN `CustomTestVLANs` varchar(255) CHARACTER SET utf8 DEFAULT 'vlans' NOT NULL COMMENT 'Test field for vlans controller';
+ALTER TABLE `ipaddresses` ADD COLUMN `CustomTestAddresses` varchar(255) CHARACTER SET utf8 DEFAULT 'addresses' COMMENT 'Test field for addresses controller';
+ALTER TABLE `subnets` ADD COLUMN `CustomTestSubnets` varchar(255) CHARACTER SET utf8 DEFAULT 'subnets' COMMENT 'Test field for subnets controller';
+ALTER TABLE `vlans` ADD COLUMN `CustomTestVLANs` varchar(255) CHARACTER SET utf8 DEFAULT 'vlans' COMMENT 'Test field for vlans controller';
 
 -- API
 UPDATE `settings` SET `api`='1' WHERE `id`='1';
