@@ -37,9 +37,6 @@ var testGetSubnetByIDOutputExpected = Subnet{
 	MasterSubnetID: 2,
 }
 
-// testGetSubnetByIDOutputJSON provides the JSON output text for testing both
-// GetSubnetByID and also GetSubnetCustomFields. Beware, other JSON mocks may
-// be missing the custom fields!
 const testGetSubnetByIDOutputJSON = `
 {
   "code": 200,
@@ -68,7 +65,6 @@ const testGetSubnetByIDOutputJSON = `
     "isFull": "0",
     "tag": "2",
     "editDate": null,
-    "CustomTestSubnets": "present",
     "links": [
       {
         "rel": "self",
