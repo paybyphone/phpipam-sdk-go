@@ -70,6 +70,7 @@ const subnetSearchOKResponseText = `
       "isFull": "0",
       "tag": "2",
       "editDate": null,
+			"Projects": "bazboop",
       "links": [
         {
           "rel": "self",
@@ -81,9 +82,48 @@ const subnetSearchOKResponseText = `
 }
 `
 
+const subnetGetOKResponseText = `
+{
+  "code": 200,
+  "success": true,
+  "data": {
+    "id": "3",
+    "subnet": "10.10.1.0",
+    "mask": "24",
+    "sectionId": "1",
+    "description": "Customer 1",
+    "firewallAddressObject": null,
+    "vrfId": "0",
+    "masterSubnetId": "2",
+    "allowRequests": "1",
+    "vlanId": "0",
+    "showName": "1",
+    "device": "0",
+    "permissions": "{\"3\":\"1\",\"2\":\"2\"}",
+    "pingSubnet": "0",
+    "discoverSubnet": "0",
+    "DNSrecursive": "0",
+    "DNSrecords": "0",
+    "nameserverId": "0",
+    "scanAgent": null,
+    "isFolder": "0",
+    "isFull": "0",
+    "tag": "2",
+    "editDate": null,
+    "Projects": "bazboop",
+    "links": [
+      {
+        "rel": "self",
+        "href": "/api/test/subnets/3/"
+      }
+    ]
+  }
+}
+`
+
 // testSubnetData represents a subnet object. This may match what ends up in
-// the subnets controller. Some fields that are poorly documented in the API
-// documentation are omitted.
+// the subnets controller. Some fields that are missing from the API
+// documentation, or are ambiguous, are omitted.
 type testSubnetData struct {
 	ID             int `json:",string"`
 	Subnet         string
@@ -120,9 +160,50 @@ const subnetSearchErrorResponseText = `
 }
 `
 
+const testCustomFieldsSchemaResponseText = `
+{
+  "code": 200,
+  "success": true,
+  "data": {
+    "Projects": {
+      "name": "Projects",
+      "type": "varchar(255)",
+      "Comment": "Projects assigned to subnet",
+      "Null": "NO",
+      "Default": "foobar"
+    }
+  }
+}
+`
+
+var testCustomFieldsSchemaExpected = map[string]phpipam.CustomField{
+	"Projects": phpipam.CustomField{
+		Name:    "Projects",
+		Type:    "varchar(255)",
+		Comment: "Projects assigned to subnet",
+		Null:    "NO",
+		Default: "foobar",
+	},
+}
+
+var testGetCustomFieldsRequestExpected = map[string]interface{}{
+	"Projects": "bazboop",
+}
+
+const testUpdateCustomFieldsRequestResponseText = `
+{
+  "code": 200,
+  "success": true,
+  "data": "subnet updated"
+}
+`
+
+const testUpdateCustomFieldsRequestExpected = "subnet updated"
+
 const authErrorExpectedResponse = "Error from API (500): Invalid username or password"
 const sessionErrorExpectedResponse = "Error from API (403): Invalid token"
 const subnetsErrorExpectedResponse = "Error from API (404): No subnets found"
+const updateCustomFieldsErrorExpectedResponse = "Custom field foobar not found in schema for controller subnets"
 
 func newHTTPTestServer(f func(w http.ResponseWriter, r *http.Request)) *httptest.Server {
 	ts := httptest.NewServer(http.HandlerFunc(f))
@@ -161,6 +242,27 @@ func httpSubnetSearchOKTestServer() *httptest.Server {
 	return newHTTPTestServer(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "application/json")
 		http.Error(w, subnetSearchOKResponseText, http.StatusOK)
+	})
+}
+
+func httpSubnetGetOKTestServer() *httptest.Server {
+	return newHTTPTestServer(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Content-Type", "application/json")
+		http.Error(w, subnetGetOKResponseText, http.StatusOK)
+	})
+}
+
+func httpCustomFieldsSchemaTestServer() *httptest.Server {
+	return newHTTPTestServer(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Content-Type", "application/json")
+		http.Error(w, testCustomFieldsSchemaResponseText, http.StatusOK)
+	})
+}
+
+func httpUpdateCustomFieldsRequestTestServer() *httptest.Server {
+	return newHTTPTestServer(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Content-Type", "application/json")
+		http.Error(w, testUpdateCustomFieldsRequestResponseText, http.StatusOK)
 	})
 }
 
@@ -279,5 +381,66 @@ func TestSendRequestError(t *testing.T) {
 
 	if expected != actual {
 		t.Fatalf("Expected error to be %s, got %s", expected, actual)
+	}
+}
+
+func TestGetCustomFieldsSchema(t *testing.T) {
+	ts := httpCustomFieldsSchemaTestServer()
+	defer ts.Close()
+	sess := fullSessionConfig()
+	sess.Config.Endpoint = ts.URL
+	client := NewClient(sess)
+
+	expected := testCustomFieldsSchemaExpected
+	actual, err := client.GetCustomFieldsSchema("subnets")
+	if err != nil {
+		t.Fatalf("Bad: %s", err)
+	}
+
+	if !reflect.DeepEqual(expected, actual) {
+		t.Fatalf("Expected %#v, got %#v", expected, actual)
+	}
+}
+
+func TestUpdateCustomFieldsRequest(t *testing.T) {
+	ts := httpUpdateCustomFieldsRequestTestServer()
+	defer ts.Close()
+	sess := fullSessionConfig()
+	sess.Config.Endpoint = ts.URL
+	client := NewClient(sess)
+
+	in := map[string]interface{}{
+		"Projects": "updated",
+	}
+
+	expected := testUpdateCustomFieldsRequestExpected
+	actual, err := client.updateCustomFieldsRequest(3, in, "subnets", testCustomFieldsSchemaExpected)
+	if err != nil {
+		t.Fatalf("Bad: %s", err)
+	}
+
+	if !reflect.DeepEqual(expected, actual) {
+		t.Fatalf("Expected %#v, got %#v", expected, actual)
+	}
+}
+
+func TestUpdateCustomFieldsRequestIllegalField(t *testing.T) {
+	ts := httpUpdateCustomFieldsRequestTestServer()
+	defer ts.Close()
+	sess := fullSessionConfig()
+	sess.Config.Endpoint = ts.URL
+	client := NewClient(sess)
+
+	in := map[string]interface{}{
+		"Description": "sneaky",
+	}
+
+	_, err := client.updateCustomFieldsRequest(3, in, "subnets", testCustomFieldsSchemaExpected)
+	if err == nil {
+		t.Fatalf("Expected error, got none")
+	}
+
+	if err.Error() != updateCustomFieldsErrorExpectedResponse {
+		t.Fatalf("Expected %q, got %q", updateCustomFieldsErrorExpectedResponse, err.Error())
 	}
 }

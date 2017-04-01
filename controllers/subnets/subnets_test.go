@@ -37,6 +37,9 @@ var testGetSubnetByIDOutputExpected = Subnet{
 	MasterSubnetID: 2,
 }
 
+// testGetSubnetByIDOutputJSON provides the JSON output text for testing both
+// GetSubnetByID and also GetSubnetCustomFields. Beware, other JSON mocks may
+// be missing the custom fields!
 const testGetSubnetByIDOutputJSON = `
 {
   "code": 200,
@@ -65,6 +68,7 @@ const testGetSubnetByIDOutputJSON = `
     "isFull": "0",
     "tag": "2",
     "editDate": null,
+    "CustomTestSubnets": "present",
     "links": [
       {
         "rel": "self",
@@ -387,6 +391,32 @@ const testGetAddressesInSubnetJSON = `
 }
 `
 
+var testGetSubnetCustomFieldsSchemaExpected = map[string]phpipam.CustomField{
+	"CustomTestSubnets": phpipam.CustomField{
+		Name:    "CustomTestSubnets",
+		Type:    "varchar(255)",
+		Comment: "Test field for subnets controller",
+		Null:    "NO",
+		Default: "subnets",
+	},
+}
+
+const testGetSubnetCustomFieldsSchemaJSON = `
+{
+  "code": 200,
+  "success": true,
+  "data": {
+    "CustomTestSubnets": {
+      "name": "CustomTestSubnets",
+      "type": "varchar(255)",
+      "Comment": "Test field for subnets controller",
+      "Null": "NO",
+      "Default": "subnets"
+    }
+  }
+}
+`
+
 var testUpdateSubnetInput = Subnet{
 	ID:          8,
 	Description: "foobat",
@@ -524,6 +554,24 @@ func TestGetAddressesInSubnet(t *testing.T) {
 
 	expected := testGetAddressesInSubnetExpected
 	actual, err := client.GetAddressesInSubnet(3)
+	if err != nil {
+		t.Fatalf("Bad: %s", err)
+	}
+
+	if !reflect.DeepEqual(expected, actual) {
+		t.Fatalf("Expected %#v, got %#v", expected, actual)
+	}
+}
+
+func TestGetSubnetCustomFieldsSchema(t *testing.T) {
+	ts := httpOKTestServer(testGetSubnetCustomFieldsSchemaJSON)
+	defer ts.Close()
+	sess := fullSessionConfig()
+	sess.Config.Endpoint = ts.URL
+	client := NewController(sess)
+
+	expected := testGetSubnetCustomFieldsSchemaExpected
+	actual, err := client.GetSubnetCustomFieldsSchema()
 	if err != nil {
 		t.Fatalf("Bad: %s", err)
 	}
@@ -713,4 +761,67 @@ func TestAccGetAddressesInSubnet(t *testing.T) {
 	if !reflect.DeepEqual(expected, actual) {
 		t.Fatalf("Expected %#v, got %#v", expected, actual)
 	}
+}
+
+// TestAccGetSubnetCustomFieldsSchema tests GetSubnetCustomFieldsSchema against
+// a live PHPIPAM instance.
+func TestAccGetSubnetCustomFieldsSchema(t *testing.T) {
+	testacc.VetAccConditions(t)
+
+	sess := session.NewSession()
+	client := NewController(sess)
+
+	expected := testGetSubnetCustomFieldsSchemaExpected
+	actual, err := client.GetSubnetCustomFieldsSchema()
+	if err != nil {
+		t.Fatalf("Bad: %s", err)
+	}
+
+	if !reflect.DeepEqual(expected, actual) {
+		t.Fatalf("Expected %#v, got %#v", expected, actual)
+	}
+}
+
+// testAccSubnetCustomFieldUpdate adds a custom field to an existing subnet
+// entry, and verify the data changed by reading it back. Technically, this
+// covers both UpdateSubnetCustomFields and GetSubnetCustomFields.
+func testAccSubnetCustomFieldUpdateRead(t *testing.T, sess *session.Session, id int, fields map[string]interface{}) {
+	c := NewController(sess)
+
+	if _, err := c.UpdateSubnetCustomFields(id, fields); err != nil {
+		t.Fatalf("Error updating subnet custom fields: %s", err)
+	}
+
+	expected := fields
+	actual, err := c.GetSubnetCustomFields(id)
+	if err != nil {
+		t.Fatalf("Error fetching custom fields after update: %s", err)
+	}
+
+	if !reflect.DeepEqual(expected, actual) {
+		t.Fatalf("Expected %#v, got %#v", expected, actual)
+	}
+}
+
+// TestAccSubnetCustomFieldUpdateRead runs acceptance tests for
+// UpdateSubnetCustomFields and GetSubnetCustomFields, by setting a value and
+// then reading it back to make sure it updated.
+//
+// We do this a few times to make sure that custom fields can be updated
+// correctly.
+func TestAccSubnetCustomFieldUpdateRead(t *testing.T) {
+	testacc.VetAccConditions(t)
+
+	sess := session.NewSession()
+	id := 3
+	fields := map[string]interface{}{
+		"CustomTestSubnets": "foobar",
+	}
+	testAccSubnetCustomFieldUpdateRead(t, sess, id, fields)
+
+	fields["CustomTestSubnets"] = "updated"
+	testAccSubnetCustomFieldUpdateRead(t, sess, id, fields)
+
+	fields["CustomTestSubnets"] = ""
+	testAccSubnetCustomFieldUpdateRead(t, sess, id, fields)
 }
