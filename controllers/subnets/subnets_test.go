@@ -392,7 +392,7 @@ var testGetSubnetCustomFieldsSchemaExpected = map[string]phpipam.CustomField{
 		Name:    "CustomTestSubnets",
 		Type:    "varchar(255)",
 		Comment: "Test field for subnets controller",
-		Null:    "NO",
+		Null:    "YES",
 		Default: "subnets",
 	},
 }
@@ -406,7 +406,7 @@ const testGetSubnetCustomFieldsSchemaJSON = `
       "name": "CustomTestSubnets",
       "type": "varchar(255)",
       "Comment": "Test field for subnets controller",
-      "Null": "NO",
+      "Null": "YES",
       "Default": "subnets"
     }
   }
@@ -809,15 +809,26 @@ func TestAccSubnetCustomFieldUpdateRead(t *testing.T) {
 	testacc.VetAccConditions(t)
 
 	sess := session.NewSession()
-	id := 3
 	fields := map[string]interface{}{
 		"CustomTestSubnets": "foobar",
 	}
-	testAccSubnetCustomFieldUpdateRead(t, sess, id, fields)
+
+	// We create a brand new subnet for this so we don't interfere with other
+	// testing that works off of existing data.
+	subnet := testCreateSubnetInput
+	testAccSubnetCRUDCreate(t, sess, subnet)
+	subnet.ID = testAccSubnetCRUDReadByCIDR(t, sess, subnet)
+
+	testAccSubnetCustomFieldUpdateRead(t, sess, subnet.ID, fields)
 
 	fields["CustomTestSubnets"] = "updated"
-	testAccSubnetCustomFieldUpdateRead(t, sess, id, fields)
+	testAccSubnetCustomFieldUpdateRead(t, sess, subnet.ID, fields)
 
-	fields["CustomTestSubnets"] = ""
-	testAccSubnetCustomFieldUpdateRead(t, sess, id, fields)
+	// Clearing out a optional field will render it as a null field in the JSON
+	// response, so it needs to be nil here and not just an empty string.
+	fields["CustomTestSubnets"] = nil
+	testAccSubnetCustomFieldUpdateRead(t, sess, subnet.ID, fields)
+
+	// clean up
+	testAccSubnetCRUDDelete(t, sess, subnet)
 }
