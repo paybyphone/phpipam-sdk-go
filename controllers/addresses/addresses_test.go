@@ -125,6 +125,32 @@ const testGetAddressesByIPOutputJSON = `
 }
 `
 
+var testGetAddressCustomFieldsSchemaExpected = map[string]phpipam.CustomField{
+	"CustomTestAddresses": phpipam.CustomField{
+		Name:    "CustomTestAddresses",
+		Type:    "varchar(255)",
+		Comment: "Test field for addresses controller",
+		Null:    "YES",
+		Default: "addresses",
+	},
+}
+
+const testGetAddressCustomFieldsSchemaJSON = `
+{
+  "code": 200,
+  "success": true,
+  "data": {
+    "CustomTestAddresses": {
+      "name": "CustomTestAddresses",
+      "type": "varchar(255)",
+      "Comment": "Test field for addresses controller",
+      "Null": "YES",
+      "Default": "addresses"
+    }
+  }
+}
+`
+
 var testUpdateAddressInput = Address{
 	ID:          11,
 	Description: "bazboop",
@@ -226,6 +252,24 @@ func TestGetAddressesByIP(t *testing.T) {
 
 	expected := testGetAddressesByIPOutputExpected
 	actual, err := client.GetAddressesByIP("10.10.1.10/24")
+	if err != nil {
+		t.Fatalf("Bad: %s", err)
+	}
+
+	if !reflect.DeepEqual(expected, actual) {
+		t.Fatalf("Expected %#v, got %#v", expected, actual)
+	}
+}
+
+func TestGetAddressCustomFieldsSchema(t *testing.T) {
+	ts := httpOKTestServer(testGetAddressCustomFieldsSchemaJSON)
+	defer ts.Close()
+	sess := fullSessionConfig()
+	sess.Config.Endpoint = ts.URL
+	client := NewController(sess)
+
+	expected := testGetAddressCustomFieldsSchemaExpected
+	actual, err := client.GetAddressCustomFieldsSchema()
 	if err != nil {
 		t.Fatalf("Bad: %s", err)
 	}
@@ -380,5 +424,81 @@ func TestAccAddressCRUD(t *testing.T) {
 	testAccAddressCRUDReadByID(t, sess, address)
 	address.Description = "foobaz"
 	testAccAddressCRUDUpdate(t, sess, address)
+	testAccAddressCRUDDelete(t, sess, address)
+}
+
+// TestAccGetAddressCustomFieldsSchema tests GetAddressCustomFieldsSchema against
+// a live PHPIPAM instance.
+func TestAccGetAddressCustomFieldsSchema(t *testing.T) {
+	testacc.VetAccConditions(t)
+
+	sess := session.NewSession()
+	client := NewController(sess)
+
+	expected := testGetAddressCustomFieldsSchemaExpected
+	actual, err := client.GetAddressCustomFieldsSchema()
+	if err != nil {
+		t.Fatalf("Bad: %s", err)
+	}
+
+	if !reflect.DeepEqual(expected, actual) {
+		t.Fatalf("Expected %#v, got %#v", expected, actual)
+	}
+}
+
+// testAccAddressCustomFieldUpdate adds a custom field to an existing subnet
+// entry, and verify the data changed by reading it back. Technically, this
+// covers both UpdateAddressCustomFields and GetAddressCustomFields.
+func testAccAddressCustomFieldUpdateRead(t *testing.T, sess *session.Session, id int, fields map[string]interface{}) {
+	c := NewController(sess)
+
+	if _, err := c.UpdateAddressCustomFields(id, fields); err != nil {
+		t.Fatalf("Error updating subnet custom fields: %s", err)
+	}
+
+	expected := fields
+	actual, err := c.GetAddressCustomFields(id)
+	if err != nil {
+		t.Fatalf("Error fetching custom fields after update: %s", err)
+	}
+
+	if !reflect.DeepEqual(expected, actual) {
+		t.Fatalf("Expected %#v, got %#v", expected, actual)
+	}
+}
+
+// TestAccAddressCustomFieldUpdateRead runs acceptance tests for
+// UpdateAddressCustomFields and GetAddressCustomFields, by setting a value and
+// then reading it back to make sure it updated.
+//
+// We do this a few times to make sure that custom fields can be updated
+// correctly.
+func TestAccAddressCustomFieldUpdateRead(t *testing.T) {
+	testacc.VetAccConditions(t)
+
+	sess := session.NewSession()
+	fields := map[string]interface{}{
+		"CustomTestAddresses": "foobar",
+	}
+
+	// We create a brand new address for this so we don't interfere with other
+	// testing that works off of existing data.
+	address := testCreateAddressInput
+	testAccAddressCRUDCreate(t, sess, address)
+	// tag goes to used (default ID 2) when an IP is created
+	address.Tag = 2
+	address.ID = testAccAddressCRUDReadByIP(t, sess, address)
+
+	testAccAddressCustomFieldUpdateRead(t, sess, address.ID, fields)
+
+	fields["CustomTestAddresses"] = "updated"
+	testAccAddressCustomFieldUpdateRead(t, sess, address.ID, fields)
+
+	// Clearing out a optional field will render it as a null field in the JSON
+	// response, so it needs to be nil here and not just an empty string.
+	fields["CustomTestAddresses"] = nil
+	testAccAddressCustomFieldUpdateRead(t, sess, address.ID, fields)
+
+	// clean up
 	testAccAddressCRUDDelete(t, sess, address)
 }
