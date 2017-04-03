@@ -203,7 +203,7 @@ const testUpdateCustomFieldsRequestExpected = "subnet updated"
 const authErrorExpectedResponse = "Error from API (500): Invalid username or password"
 const sessionErrorExpectedResponse = "Error from API (403): Invalid token"
 const subnetsErrorExpectedResponse = "Error from API (404): No subnets found"
-const updateCustomFieldsErrorExpectedResponse = "Custom field foobar not found in schema for controller subnets"
+const updateCustomFieldsErrorExpectedResponse = "Custom field Description not found in schema for controller subnets"
 
 func newHTTPTestServer(f func(w http.ResponseWriter, r *http.Request)) *httptest.Server {
 	ts := httptest.NewServer(http.HandlerFunc(f))
