@@ -98,6 +98,32 @@ const testGetVLANsByNumberOutputJSON = `
 }
 `
 
+var testGetVLANCustomFieldsSchemaExpected = map[string]phpipam.CustomField{
+	"CustomTestVLANs": phpipam.CustomField{
+		Name:    "CustomTestVLANs",
+		Type:    "varchar(255)",
+		Comment: "Test field for vlans controller",
+		Null:    "YES",
+		Default: "vlans",
+	},
+}
+
+const testGetVLANCustomFieldsSchemaJSON = `
+{
+  "code": 200,
+  "success": true,
+  "data": {
+    "CustomTestVLANs": {
+      "name": "CustomTestVLANs",
+      "type": "varchar(255)",
+      "Comment": "Test field for vlans controller",
+      "Null": "YES",
+      "Default": "vlans"
+    }
+  }
+}
+`
+
 var testUpdateVLANInput = VLAN{
 	ID:   3,
 	Name: "bazlan",
@@ -199,6 +225,24 @@ func TestGetVLANsByNumber(t *testing.T) {
 
 	expected := testGetVLANsByNumberOutputExpected
 	actual, err := client.GetVLANsByNumber(1000)
+	if err != nil {
+		t.Fatalf("Bad: %s", err)
+	}
+
+	if !reflect.DeepEqual(expected, actual) {
+		t.Fatalf("Expected %#v, got %#v", expected, actual)
+	}
+}
+
+func TestGetVLANCustomFieldsSchema(t *testing.T) {
+	ts := httpOKTestServer(testGetVLANCustomFieldsSchemaJSON)
+	defer ts.Close()
+	sess := fullSessionConfig()
+	sess.Config.Endpoint = ts.URL
+	client := NewController(sess)
+
+	expected := testGetVLANCustomFieldsSchemaExpected
+	actual, err := client.GetVLANCustomFieldsSchema()
 	if err != nil {
 		t.Fatalf("Bad: %s", err)
 	}
@@ -348,5 +392,81 @@ func TestAccVLANCRUD(t *testing.T) {
 	testAccVLANCRUDReadByID(t, sess, vlan)
 	vlan.Name = "bazlan"
 	testAccVLANCRUDUpdate(t, sess, vlan)
+	testAccVLANCRUDDelete(t, sess, vlan)
+}
+
+// TestAccGetVLANCustomFieldsSchema tests GetVLANCustomFieldsSchema against
+// a live PHPIPAM instance.
+func TestAccGetVLANCustomFieldsSchema(t *testing.T) {
+	testacc.VetAccConditions(t)
+
+	sess := session.NewSession()
+	client := NewController(sess)
+
+	expected := testGetVLANCustomFieldsSchemaExpected
+	actual, err := client.GetVLANCustomFieldsSchema()
+	if err != nil {
+		t.Fatalf("Bad: %s", err)
+	}
+
+	if !reflect.DeepEqual(expected, actual) {
+		t.Fatalf("Expected %#v, got %#v", expected, actual)
+	}
+}
+
+// testAccVLANCustomFieldUpdate adds a custom field to an existing vlan
+// entry, and verify the data changed by reading it back. Technically, this
+// covers both UpdateVLANCustomFields and GetVLANCustomFields.
+func testAccVLANCustomFieldUpdateRead(t *testing.T, sess *session.Session, id int, name string, fields map[string]interface{}) {
+	c := NewController(sess)
+
+	if _, err := c.UpdateVLANCustomFields(id, name, fields); err != nil {
+		t.Fatalf("Error updating vlan custom fields: %s", err)
+	}
+
+	expected := fields
+	actual, err := c.GetVLANCustomFields(id)
+	if err != nil {
+		t.Fatalf("Error fetching custom fields after update: %s", err)
+	}
+
+	if !reflect.DeepEqual(expected, actual) {
+		t.Fatalf("Expected %#v, got %#v", expected, actual)
+	}
+}
+
+// TestAccVLANCustomFieldUpdateRead runs acceptance tests for
+// UpdateVLANCustomFields and GetVLANCustomFields, by setting a value and
+// then reading it back to make sure it updated.
+//
+// We do this a few times to make sure that custom fields can be updated
+// correctly.
+func TestAccVLANCustomFieldUpdateRead(t *testing.T) {
+	testacc.VetAccConditions(t)
+
+	sess := session.NewSession()
+	fields := map[string]interface{}{
+		"CustomTestVLANs": "foobar",
+	}
+
+	// We create a brand new vlan for this so we don't interfere with other
+	// testing that works off of existing data.
+	vlan := testCreateVLANInput
+	testAccVLANCRUDCreate(t, sess, vlan)
+	// Add the domain ID here as 1 is the default.
+	vlan.DomainID = 1
+	vlan.ID = testAccVLANCRUDReadByNumber(t, sess, vlan)
+
+	testAccVLANCustomFieldUpdateRead(t, sess, vlan.ID, vlan.Name, fields)
+
+	fields["CustomTestVLANs"] = "updated"
+	testAccVLANCustomFieldUpdateRead(t, sess, vlan.ID, vlan.Name, fields)
+
+	// Clearing out a optional field will render it as a null field in the JSON
+	// response, so it needs to be nil here and not just an empty string.
+	fields["CustomTestVLANs"] = nil
+	testAccVLANCustomFieldUpdateRead(t, sess, vlan.ID, vlan.Name, fields)
+
+	// clean up
 	testAccVLANCRUDDelete(t, sess, vlan)
 }
