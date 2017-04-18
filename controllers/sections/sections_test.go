@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/paybyphone/phpipam-sdk-go/controllers/subnets"
 	"github.com/paybyphone/phpipam-sdk-go/phpipam"
 	"github.com/paybyphone/phpipam-sdk-go/phpipam/session"
@@ -101,7 +102,8 @@ const testListSectionsOutputJSON = `
 `
 
 var testCreateSectionInput = Section{
-	Name: "foobar",
+	Name:        "foobar",
+	Permissions: "{\"3\":\"1\",\"2\":\"2\"}",
 }
 
 const testCreateSectionOutputExpected = `Section created`
@@ -580,7 +582,7 @@ func testAccSectionsCRUDReadByName(t *testing.T, sess *session.Session, s Sectio
 	s.ID = out.ID
 
 	if !reflect.DeepEqual(s, out) {
-		t.Fatalf("ReadByName: Expected %#v, got %#v", s, out)
+		t.Fatalf("ReadByName: Expected %s, got %s", spew.Sdump(s), spew.Sdump(out))
 	}
 	return out.ID
 }

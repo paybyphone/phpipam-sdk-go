@@ -1,8 +1,10 @@
 package addresses
 
 import (
+	"log"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"reflect"
 	"testing"
 
@@ -131,7 +133,14 @@ var testGetAddressCustomFieldsSchemaExpected = map[string]phpipam.CustomField{
 		Type:    "varchar(255)",
 		Comment: "Test field for addresses controller",
 		Null:    "YES",
-		Default: "addresses",
+		Default: "",
+	},
+	"CustomTestAddresses2": phpipam.CustomField{
+		Name:    "CustomTestAddresses2",
+		Type:    "varchar(255)",
+		Comment: "Test field for addresses controller (second field)",
+		Null:    "YES",
+		Default: "",
 	},
 }
 
@@ -145,7 +154,14 @@ const testGetAddressCustomFieldsSchemaJSON = `
       "type": "varchar(255)",
       "Comment": "Test field for addresses controller",
       "Null": "YES",
-      "Default": "addresses"
+      "Default": ""
+    },
+    "CustomTestAddresses2": {
+      "name": "CustomTestAddresses2",
+      "type": "varchar(255)",
+      "Comment": "Test field for addresses controller (second field)",
+      "Null": "YES",
+      "Default": ""
     }
   }
 }
@@ -417,12 +433,23 @@ func TestAccAddressCRUD(t *testing.T) {
 
 	sess := session.NewSession()
 	address := testCreateAddressInput
+	if os.Getenv("TESTACC_CUSTOM_NESTED") != "" {
+		address.CustomFields = map[string]interface{}{
+			"CustomTestAddresses":  "foobar",
+			"CustomTestAddresses2": nil,
+		}
+	} else {
+		log.Println("Note: Not testing nested custom fields as TESTACC_CUSTOM_NESTED is not set")
+	}
 	testAccAddressCRUDCreate(t, sess, address)
 	// tag goes to used (default ID 2) when an IP is created
 	address.Tag = 2
 	address.ID = testAccAddressCRUDReadByIP(t, sess, address)
 	testAccAddressCRUDReadByID(t, sess, address)
 	address.Description = "foobaz"
+	if os.Getenv("TESTACC_CUSTOM_NESTED") != "" {
+		address.CustomFields["CustomTestAddresses"] = "bazboop"
+	}
 	testAccAddressCRUDUpdate(t, sess, address)
 	testAccAddressCRUDDelete(t, sess, address)
 }
@@ -469,16 +496,19 @@ func testAccAddressCustomFieldUpdateRead(t *testing.T, sess *session.Session, id
 
 // TestAccAddressCustomFieldUpdateRead runs acceptance tests for
 // UpdateAddressCustomFields and GetAddressCustomFields, by setting a value and
-// then reading it back to make sure it updated.
+// then reading it back to make sure it updated. This test is skipped if
+// TESTACC_CUSTOM_NESTED is set.
 //
 // We do this a few times to make sure that custom fields can be updated
 // correctly.
 func TestAccAddressCustomFieldUpdateRead(t *testing.T) {
 	testacc.VetAccConditions(t)
+	testacc.SkipIfCustomNested(t)
 
 	sess := session.NewSession()
 	fields := map[string]interface{}{
-		"CustomTestAddresses": "foobar",
+		"CustomTestAddresses":  "foobar",
+		"CustomTestAddresses2": nil,
 	}
 
 	// We create a brand new address for this so we don't interfere with other

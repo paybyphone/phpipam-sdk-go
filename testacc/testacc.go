@@ -13,6 +13,14 @@ func SkipIfNotAcc(t *testing.T) {
 	}
 }
 
+// SkipIfCustomNested is designed to skip an integration test if
+// TESTACC_CUSTOM_NESTED is set.
+func SkipIfCustomNested(t *testing.T) {
+	if os.Getenv("TESTACC_CUSTOM_NESTED") != "" {
+		t.Skipf("Skipping non-nested custom field test because TESTACC_CUSTOM_NESTED is set")
+	}
+}
+
 // PanicIfMissingEnv is designed to panic if the following environment variables
 // are not set:
 //

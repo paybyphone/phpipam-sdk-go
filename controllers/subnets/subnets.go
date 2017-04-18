@@ -83,6 +83,13 @@ type Subnet struct {
 
 	// The date of the last edit to this resource.
 	EditDate string `json:"editDate,omitempty"`
+
+	// A map[string]interface{} of custom fields to set on the resource. Note
+	// that this functionality requires PHPIPAM 1.3 or higher with the "Nest
+	// custom fields" flag set on the specific API integration. If this is not
+	// enabled, this map will be nil on GETs and POSTs and PATCHes with this
+	// field set will fail. Use the explicit custom field functions instead.
+	CustomFields map[string]interface{} `json:"custom_fields,omitempty"`
 }
 
 // Controller is the base client for the Subnets controller.

@@ -2,8 +2,10 @@ package subnets
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"reflect"
 	"testing"
 
@@ -205,7 +207,7 @@ var testGetAddressesInSubnetExpected = []addresses.Address{
 		Description: "Server1",
 		Hostname:    "server1.cust1.local",
 		Tag:         2,
-		LastSeen:    "0000-00-00 00:00:00",
+		LastSeen:    "1970-01-01 00:00:01",
 	},
 	addresses.Address{
 		ID:          2,
@@ -215,7 +217,7 @@ var testGetAddressesInSubnetExpected = []addresses.Address{
 		Description: "Server2",
 		Hostname:    "server2.cust1.local",
 		Tag:         2,
-		LastSeen:    "0000-00-00 00:00:00",
+		LastSeen:    "1970-01-01 00:00:01",
 	},
 	addresses.Address{
 		ID:          3,
@@ -225,7 +227,7 @@ var testGetAddressesInSubnetExpected = []addresses.Address{
 		Description: "Server3",
 		Hostname:    "server3.cust1.local",
 		Tag:         3,
-		LastSeen:    "0000-00-00 00:00:00",
+		LastSeen:    "1970-01-01 00:00:01",
 	},
 	addresses.Address{
 		ID:          4,
@@ -235,7 +237,7 @@ var testGetAddressesInSubnetExpected = []addresses.Address{
 		Description: "Server4",
 		Hostname:    "server4.cust1.local",
 		Tag:         3,
-		LastSeen:    "0000-00-00 00:00:00",
+		LastSeen:    "1970-01-01 00:00:01",
 	},
 	addresses.Address{
 		ID:          5,
@@ -244,7 +246,7 @@ var testGetAddressesInSubnetExpected = []addresses.Address{
 		IsGateway:   false,
 		Description: "Gateway",
 		Tag:         2,
-		LastSeen:    "0000-00-00 00:00:00",
+		LastSeen:    "1970-01-01 00:00:01",
 	},
 }
 
@@ -266,7 +268,7 @@ const testGetAddressesInSubnetJSON = `
       "deviceId": null,
       "port": null,
       "note": null,
-      "lastSeen": "0000-00-00 00:00:00",
+			"lastSeen": "1970-01-01 00:00:01",
       "excludePing": "0",
       "PTRignore": "0",
       "PTR": "0",
@@ -292,7 +294,7 @@ const testGetAddressesInSubnetJSON = `
       "deviceId": null,
       "port": null,
       "note": null,
-      "lastSeen": "0000-00-00 00:00:00",
+			"lastSeen": "1970-01-01 00:00:01",
       "excludePing": "0",
       "PTRignore": "0",
       "PTR": "0",
@@ -318,7 +320,7 @@ const testGetAddressesInSubnetJSON = `
       "deviceId": null,
       "port": null,
       "note": null,
-      "lastSeen": "0000-00-00 00:00:00",
+			"lastSeen": "1970-01-01 00:00:01",
       "excludePing": "0",
       "PTRignore": "0",
       "PTR": "0",
@@ -344,7 +346,7 @@ const testGetAddressesInSubnetJSON = `
       "deviceId": null,
       "port": null,
       "note": null,
-      "lastSeen": "0000-00-00 00:00:00",
+			"lastSeen": "1970-01-01 00:00:01",
       "excludePing": "0",
       "PTRignore": "0",
       "PTR": "0",
@@ -370,7 +372,7 @@ const testGetAddressesInSubnetJSON = `
       "deviceId": null,
       "port": null,
       "note": null,
-      "lastSeen": "0000-00-00 00:00:00",
+			"lastSeen": "1970-01-01 00:00:01",
       "excludePing": "0",
       "PTRignore": "0",
       "PTR": "0",
@@ -393,7 +395,14 @@ var testGetSubnetCustomFieldsSchemaExpected = map[string]phpipam.CustomField{
 		Type:    "varchar(255)",
 		Comment: "Test field for subnets controller",
 		Null:    "YES",
-		Default: "subnets",
+		Default: "",
+	},
+	"CustomTestSubnets2": phpipam.CustomField{
+		Name:    "CustomTestSubnets2",
+		Type:    "varchar(255)",
+		Comment: "Test field for subnets controller (second field)",
+		Null:    "YES",
+		Default: "",
 	},
 }
 
@@ -407,7 +416,14 @@ const testGetSubnetCustomFieldsSchemaJSON = `
       "type": "varchar(255)",
       "Comment": "Test field for subnets controller",
       "Null": "YES",
-      "Default": "subnets"
+      "Default": null
+    },
+    "CustomTestSubnets2": {
+      "name": "CustomTestSubnets2",
+      "type": "varchar(255)",
+      "Comment": "Test field for subnets controller (second field)",
+      "Null": "YES",
+      "Default": null
     }
   }
 }
@@ -732,10 +748,23 @@ func TestAccSubnetCRUD(t *testing.T) {
 
 	sess := session.NewSession()
 	subnet := testCreateSubnetInput
+	// Permissions get added even though they are optional
+	subnet.Permissions = "{\"3\":\"1\",\"2\":\"2\"}"
+	if os.Getenv("TESTACC_CUSTOM_NESTED") != "" {
+		subnet.CustomFields = map[string]interface{}{
+			"CustomTestSubnets":  "foobar",
+			"CustomTestSubnets2": nil,
+		}
+	} else {
+		log.Println("Note: Not testing nested custom fields as TESTACC_CUSTOM_NESTED is not set")
+	}
 	testAccSubnetCRUDCreate(t, sess, subnet)
 	subnet.ID = testAccSubnetCRUDReadByCIDR(t, sess, subnet)
 	testAccSubnetCRUDReadByID(t, sess, subnet)
 	subnet.Description = "Updating subnet!"
+	if os.Getenv("TESTACC_CUSTOM_NESTED") != "" {
+		subnet.CustomFields["CustomTestSubnets"] = "bazboop"
+	}
 	testAccSubnetCRUDUpdate(t, sess, subnet)
 	testAccSubnetCRUDDelete(t, sess, subnet)
 }
@@ -749,6 +778,16 @@ func TestAccGetAddressesInSubnet(t *testing.T) {
 	client := NewController(sess)
 
 	expected := testGetAddressesInSubnetExpected
+	if os.Getenv("TESTACC_CUSTOM_NESTED") != "" {
+		for n := range expected {
+			expected[n].CustomFields = map[string]interface{}{
+				"CustomTestAddresses":  nil,
+				"CustomTestAddresses2": nil,
+			}
+		}
+	} else {
+		log.Println("Note: Not testing nested custom fields as TESTACC_CUSTOM_NESTED is not set")
+	}
 	actual, err := client.GetAddressesInSubnet(3)
 	if err != nil {
 		t.Fatalf("Bad: %s", err)
@@ -807,15 +846,19 @@ func testAccSubnetCustomFieldUpdateRead(t *testing.T, sess *session.Session, id 
 // correctly.
 func TestAccSubnetCustomFieldUpdateRead(t *testing.T) {
 	testacc.VetAccConditions(t)
+	testacc.SkipIfCustomNested(t)
 
 	sess := session.NewSession()
 	fields := map[string]interface{}{
-		"CustomTestSubnets": "foobar",
+		"CustomTestSubnets":  "foobar",
+		"CustomTestSubnets2": nil,
 	}
 
 	// We create a brand new subnet for this so we don't interfere with other
 	// testing that works off of existing data.
 	subnet := testCreateSubnetInput
+	// Permissions get added even though they are optional
+	subnet.Permissions = "{\"3\":\"1\",\"2\":\"2\"}"
 	testAccSubnetCRUDCreate(t, sess, subnet)
 	subnet.ID = testAccSubnetCRUDReadByCIDR(t, sess, subnet)
 
