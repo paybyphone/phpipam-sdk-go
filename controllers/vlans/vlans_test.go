@@ -1,8 +1,10 @@
 package vlans
 
 import (
+	"log"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"reflect"
 	"testing"
 
@@ -104,7 +106,14 @@ var testGetVLANCustomFieldsSchemaExpected = map[string]phpipam.CustomField{
 		Type:    "varchar(255)",
 		Comment: "Test field for vlans controller",
 		Null:    "YES",
-		Default: "vlans",
+		Default: "",
+	},
+	"CustomTestVLANs2": phpipam.CustomField{
+		Name:    "CustomTestVLANs2",
+		Type:    "varchar(255)",
+		Comment: "Test field for vlans controller (second field)",
+		Null:    "YES",
+		Default: "",
 	},
 }
 
@@ -118,7 +127,14 @@ const testGetVLANCustomFieldsSchemaJSON = `
       "type": "varchar(255)",
       "Comment": "Test field for vlans controller",
       "Null": "YES",
-      "Default": "vlans"
+      "Default": ""
+    },
+    "CustomTestVLANs2": {
+      "name": "CustomTestVLANs2",
+      "type": "varchar(255)",
+      "Comment": "Test field for vlans controller (second field)",
+      "Null": "YES",
+      "Default": ""
     }
   }
 }
@@ -385,6 +401,14 @@ func TestAccVLANCRUD(t *testing.T) {
 
 	sess := session.NewSession()
 	vlan := testCreateVLANInput
+	if os.Getenv("TESTACC_CUSTOM_NESTED") != "" {
+		vlan.CustomFields = map[string]interface{}{
+			"CustomTestVLANs":  "foobar",
+			"CustomTestVLANs2": nil,
+		}
+	} else {
+		log.Println("Note: Not testing nested custom fields as TESTACC_CUSTOM_NESTED is not set")
+	}
 	testAccVLANCRUDCreate(t, sess, vlan)
 	// Add the domain ID here as 1 is the default.
 	vlan.DomainID = 1
@@ -443,10 +467,12 @@ func testAccVLANCustomFieldUpdateRead(t *testing.T, sess *session.Session, id in
 // correctly.
 func TestAccVLANCustomFieldUpdateRead(t *testing.T) {
 	testacc.VetAccConditions(t)
+	testacc.SkipIfCustomNested(t)
 
 	sess := session.NewSession()
 	fields := map[string]interface{}{
-		"CustomTestVLANs": "foobar",
+		"CustomTestVLANs":  "foobar",
+		"CustomTestVLANs2": nil,
 	}
 
 	// We create a brand new vlan for this so we don't interfere with other

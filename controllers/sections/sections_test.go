@@ -1,8 +1,10 @@
 package sections
 
 import (
+	"log"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"reflect"
 	"testing"
 
@@ -103,6 +105,7 @@ const testListSectionsOutputJSON = `
 
 var testCreateSectionInput = Section{
 	Name:        "foobar",
+	StrictMode:  true,
 	Permissions: "{\"3\":\"1\",\"2\":\"2\"}",
 }
 
@@ -686,12 +689,22 @@ func TestAccGetSubnetsInSection(t *testing.T) {
 	client := NewController(sess)
 
 	expected := testGetSubnetsInSectionExpected
+	if os.Getenv("TESTACC_CUSTOM_NESTED") != "" {
+		for n := range expected {
+			expected[n].CustomFields = map[string]interface{}{
+				"CustomTestSubnets":  nil,
+				"CustomTestSubnets2": nil,
+			}
+		}
+	} else {
+		log.Println("Note: Not testing nested custom fields as TESTACC_CUSTOM_NESTED is not set")
+	}
 	actual, err := client.GetSubnetsInSection(1)
 	if err != nil {
 		t.Fatalf("Bad: %s", err)
 	}
 
 	if !reflect.DeepEqual(expected, actual) {
-		t.Fatalf("Expected %#v, got %#v", expected, actual)
+		t.Fatalf("Expected %s, got %s", spew.Sdump(expected), spew.Sdump(actual))
 	}
 }
