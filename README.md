@@ -19,26 +19,22 @@ See the [GoDoc][2] for the SDK usage details.
 
 ## A Note on Custom Fields
 
-PHPIPAM takes the (unfortunately common) approach to using `ATLER TABLE` to add
-custom fields to tables where they can be added (addresses, subnets, VLANs,
-VRFs, users, and devices in 1.2). More importantly, they are embedded in the
-main resource object when making API requests. This makes custom fields hard to
-implement, because since we do not know the names of these fields ahead of time,
-we cannot model them into a strongly typed representation of each resource.
+The controllers in this SDK can access custom fields in one of two ways: using
+the embedded `CustomFields` map in each controller's data type, or using the
+`Get` and `Update` methods in each controller designed to work with custom
+fields. Which one you use depends on if you are using the **Nested custom
+fields** feature in PHPIPAM (requires 1.3 or higher). Nested custom fields
+require that you use the `CustomFields` map, non-nested require the use of the
+aforementioned functions.
 
-The custom field functions in each controller package here resolve this by
-querying each controller ahead of time for the custom field schema before
-returning or accepting a `map[string]interface{}` with each configured custom
-field set (ensuring you only get the custom fields back, and also validating
-incoming custom fields to ensure that non-custom field data is not being
-updated).
+Note that when you are using un-nested custom fields, you cannot use required
+fields - this is due to the fact that entries get added ahead of time without
+custom fields as there is no easy way to predict the shape of the data necessary
+to send to PHPIPAM in the initial creation request. If you require required
+fields, enable the nested functionality - otherwise, ensure that your fields are
+not required and choose sane defaults if it's absolutely necessary for data to
+be present.
 
-Unfortunately, this approach - and the approach of using a statically typed
-model of the resource data in general - means that you cannot use this SDK with
-a system that has required custom fields set, as the API request will break on
-the `NOT NULL` database constraint. If you plan on using this SDK, keep this in
-mind and ensure that your custom fields are not required (try to choose sane
-defaults in lieu).
 
 ## License
 
