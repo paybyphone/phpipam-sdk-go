@@ -32,7 +32,7 @@ func NewSession(configs ...phpipam.Config) *Session {
 		Config: phpipam.DefaultConfigProvider(),
 	}
 	for _, v := range configs {
-		mergo.MergeWithOverwrite(&s.Config, v)
+		mergo.Merge(&s.Config, v, mergo.WithOverride)
 	}
 
 	return s

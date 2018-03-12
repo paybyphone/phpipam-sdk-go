@@ -1,3 +1,6 @@
 cover.out
 vendor/*
 !vendor/vendor.json
+.idea/
+Gopkg.toml
+Gopkg.lock
