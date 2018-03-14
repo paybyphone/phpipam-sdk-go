@@ -129,11 +129,25 @@ func newRequestResponse(r *http.Response) *requestResponse {
 func (r *Request) Send() error {
 	var req *http.Request
 	var err error
-	client := &http.Client{
-		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			return http.ErrUseLastResponse
-		},
+
+	r.Session.RLock()
+	client := r.Session.HttpClient
+	r.Session.RUnlock()
+
+	if client == nil {
+		client = new(http.Client)
 	}
+
+	if client.CheckRedirect == nil {
+		client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		}
+	}
+
+	// Write the client back to the session object and re-use it next time
+	r.Session.Lock()
+	r.Session.HttpClient = client
+	r.Session.Unlock()
 
 	switch r.Method {
 	case "OPTIONS", "GET", "POST", "PUT", "PATCH", "DELETE":
