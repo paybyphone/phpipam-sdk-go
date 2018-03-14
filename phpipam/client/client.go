@@ -8,7 +8,6 @@ import (
 	"github.com/paybyphone/phpipam-sdk-go/phpipam"
 	"github.com/paybyphone/phpipam-sdk-go/phpipam/request"
 	"github.com/paybyphone/phpipam-sdk-go/phpipam/session"
-	"net/http"
 )
 
 // Client encompasses a generic client object that is further extended by
