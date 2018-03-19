@@ -105,7 +105,7 @@ func (bis *BoolIntString) UnmarshalJSON(b []byte) error {
 	switch s {
 	case "0", "":
 		*bis = false
-	case "1":
+	case "1","4": // for the bizarre case when IPAM returns "4" as true
 		*bis = true
 	default:
 		return &json.UnmarshalTypeError{
