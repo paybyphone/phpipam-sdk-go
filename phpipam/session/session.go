@@ -4,6 +4,8 @@ package session
 import (
 	"github.com/imdario/mergo"
 	"github.com/paybyphone/phpipam-sdk-go/phpipam"
+	"net/http"
+	"sync"
 )
 
 // timeLayout represents the datetime format returned by the PHPIPAM api.
@@ -22,6 +24,12 @@ type Session struct {
 
 	// The session token.
 	Token Token
+
+	// A session shares this client if provided
+	HttpClient *http.Client
+
+	sync.RWMutex // protect updates of HttpClient
+
 }
 
 // NewSession creates a new session based off supplied configs. It is up to the
@@ -32,8 +40,17 @@ func NewSession(configs ...phpipam.Config) *Session {
 		Config: phpipam.DefaultConfigProvider(),
 	}
 	for _, v := range configs {
-		mergo.MergeWithOverwrite(&s.Config, v)
+		mergo.Merge(&s.Config, v, mergo.WithOverride)
 	}
 
 	return s
 }
+
+// SetHttpClient sets a specific http client with a particular transport etc
+// For backwards compatibility, a CheckRedirect function will be added at call time if not present
+func (s *Session) SetHttpClient(hc *http.Client) {
+	s.Lock()
+	s.HttpClient = hc
+	s.Unlock()
+}
+
