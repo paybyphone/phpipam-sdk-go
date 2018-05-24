@@ -76,13 +76,8 @@ func (r *requestResponse) BodyString() string {
 // request is successful and the response data is unmarshalled.
 func (r *requestResponse) ReadResponseJSON(v interface{}) error {
 	var resp APIResponse
-	if err := json.Unmarshal(r.Body, &resp); err != nil {
-		return fmt.Errorf("JSON parsing error: %s - Response body: %s", err, r.Body)
-	}
 
-	if !resp.Success {
-		return r.handleError()
-	}
+	json.Unmarshal(r.Body, &resp);
 
 	if string(resp.Data) != "" {
 		if err := json.Unmarshal(resp.Data, v); err != nil {
