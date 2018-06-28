@@ -9,8 +9,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/paybyphone/phpipam-sdk-go/phpipam"
-	"github.com/paybyphone/phpipam-sdk-go/phpipam/session"
+	"github.com/youkoulayley/phpipam-sdk-go/phpipam"
+	"github.com/youkoulayley/phpipam-sdk-go/phpipam/session"
 )
 
 const errorResponseText = `
