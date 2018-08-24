@@ -9,10 +9,10 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/paybyphone/phpipam-sdk-go/controllers/addresses"
-	"github.com/paybyphone/phpipam-sdk-go/phpipam"
-	"github.com/paybyphone/phpipam-sdk-go/phpipam/session"
-	"github.com/paybyphone/phpipam-sdk-go/testacc"
+	"github.com/youkoulayley/phpipam-sdk-go/controllers/addresses"
+	"github.com/youkoulayley/phpipam-sdk-go/phpipam"
+	"github.com/youkoulayley/phpipam-sdk-go/phpipam/session"
+	"github.com/youkoulayley/phpipam-sdk-go/testacc"
 )
 
 var testCreateSubnetInput = Subnet{
