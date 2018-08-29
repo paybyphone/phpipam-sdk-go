@@ -3,7 +3,10 @@
 package addresses
 
 import (
+	"errors"
 	"fmt"
+	"math/rand"
+	"time"
 
 	"github.com/paybyphone/phpipam-sdk-go/phpipam"
 	"github.com/paybyphone/phpipam-sdk-go/phpipam/client"
@@ -87,7 +90,24 @@ func NewController(sess *session.Session) *Controller {
 
 // CreateAddress creates an address by sending a POST request.
 func (c *Controller) CreateAddress(in Address) (message string, err error) {
-	err = c.SendRequest("POST", "/addresses/", &in, &message)
+	if in.IPAddress == "" && in.SubnetID == 0 {
+		return message, errors.New("ip address or subnet id must be defined")
+	}
+
+	if in.IPAddress == "" {
+		// Retry
+		for i := 0; i <= 5; i++ {
+			err = c.SendRequest("POST", "/addresses/first_free", &in, &message)
+			if err == nil {
+				break
+			}
+			r := rand.Intn(500)
+			time.Sleep(time.Duration(r) * time.Microsecond)
+		}
+	} else {
+		err = c.SendRequest("POST", "/addresses/", &in, &message)
+	}
+
 	return
 }
 
