@@ -4,7 +4,6 @@ package subnets
 
 import (
 	"fmt"
-
 	"github.com/paybyphone/phpipam-sdk-go/controllers/addresses"
 	"github.com/paybyphone/phpipam-sdk-go/phpipam"
 	"github.com/paybyphone/phpipam-sdk-go/phpipam/client"
@@ -83,13 +82,6 @@ type Subnet struct {
 
 	// The date of the last edit to this resource.
 	EditDate string `json:"editDate,omitempty"`
-
-	// A map[string]interface{} of custom fields to set on the resource. Note
-	// that this functionality requires PHPIPAM 1.3 or higher with the "Nest
-	// custom fields" flag set on the specific API integration. If this is not
-	// enabled, this map will be nil on GETs and POSTs and PATCHes with this
-	// field set will fail. Use the explicit custom field functions instead.
-	CustomFields map[string]interface{} `json:"custom_fields,omitempty"`
 }
 
 // Controller is the base client for the Subnets controller.
@@ -129,7 +121,19 @@ func (c *Controller) GetSubnetsByCIDR(cidr string) (out []Subnet, err error) {
 	return
 }
 
-// GetFirstFreeAddress GETs the first free IP address in a subnet and returns
+// Create new child subnet inside subnet with specified mask.
+func (c *Controller) CreateFirstFreeSubnet(id, mask int) (out string, err error) {
+	err = c.SendRequest("POST", fmt.Sprintf("/subnets/%d/first_subnet/%d", id, mask),&struct{}{}, &out)
+	return
+}
+
+// Get first free/available subnet from master subnet
+func (c *Controller) GetFirstFreeSubnet(id, mask int) (out string, err error) {
+	err = c.SendRequest("GET", fmt.Sprintf("/subnets/%d/first_subnet/%d", id, mask),&struct{}{}, &out)
+	return
+}
+
+// GetFirstFreeAddress GETs the  free IP address in a subnet and returns
 // it as a string. This can be used to automatically determine the next address
 // you should use. If there are no more available addresses, the string will be
 // blank.
