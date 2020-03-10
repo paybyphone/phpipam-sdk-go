@@ -91,6 +91,12 @@ func (c *Controller) CreateAddress(in Address) (message string, err error) {
 	return
 }
 
+// CreateAddress creates a first free in subnet address by sending a POST request.
+func (c *Controller) CreateFirstFreeAddress(id int, in Address) (out string, err error) {
+        err = c.SendRequest("POST", fmt.Sprintf("/addresses/first_free/%d", id), &in, &out)
+        return
+}
+
 // GetAddressByID GETs an address via its ID.
 func (c *Controller) GetAddressByID(id int) (out Address, err error) {
 	err = c.SendRequest("GET", fmt.Sprintf("/addresses/%d/", id), &struct{}{}, &out)
