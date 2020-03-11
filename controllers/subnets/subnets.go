@@ -84,6 +84,12 @@ type Subnet struct {
 	// The date of the last edit to this resource.
 	EditDate string `json:"editDate,omitempty"`
 
+	// Gateway IP and ID of Gateway IP
+	Gateway  map[string]interface{} `json:"gateway,omitempty"`
+
+	// Gateway IP ID
+	GatewayID  string `json:"gatewayId,omitempty"`
+
 	// A map[string]interface{} of custom fields to set on the resource. Note
 	// that this functionality requires PHPIPAM 1.3 or higher with the "Nest
 	// custom fields" flag set on the specific API integration. If this is not

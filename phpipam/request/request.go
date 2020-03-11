@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"log"
 
 	"github.com/paybyphone/phpipam-sdk-go/phpipam/session"
 )
@@ -114,6 +115,7 @@ func newRequestResponse(r *http.Response) *requestResponse {
 	}
 	defer r.Body.Close()
 	body, err := ioutil.ReadAll(r.Body)
+	log.Printf("Response Body Debug ................... %s", body)
 	if err != nil {
 		panic(err)
 	}
@@ -138,6 +140,7 @@ func (r *Request) Send() error {
 	switch r.Method {
 	case "OPTIONS", "GET", "POST", "PUT", "PATCH", "DELETE":
 		bs, err := json.Marshal(r.Input)
+		log.Printf("Request Body Debug ................... %s", bs)
 		if err != nil {
 			return fmt.Errorf("Error preparing request data: %s", err)
 		}
