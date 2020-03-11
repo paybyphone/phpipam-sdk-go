@@ -4,7 +4,6 @@ package addresses
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/paybyphone/phpipam-sdk-go/phpipam"
 	"github.com/paybyphone/phpipam-sdk-go/phpipam/client"
