@@ -145,6 +145,7 @@ func (r *Request) Send() error {
 			return fmt.Errorf("Error preparing request data: %s", err)
 		}
 		buf := bytes.NewBuffer(bs)
+		log.Printf("Request URL Debug ...................Method: %s, UR: %s/%s%s", r.Method, r.Session.Config.Endpoint, r.Session.Config.AppID, r.URI)
 		req, err = http.NewRequest(r.Method, fmt.Sprintf("%s/%s%s", r.Session.Config.Endpoint, r.Session.Config.AppID, r.URI), buf)
 		req.Header.Add("Content-Type", "application/json")
 	default:
