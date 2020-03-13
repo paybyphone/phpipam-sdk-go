@@ -93,7 +93,7 @@ func (c *Controller) CreateAddress(in Address) (message string, err error) {
 
 // CreateAddress creates a first free in subnet address by sending a POST request.
 func (c *Controller) CreateFirstFreeAddress(id int, in Address) (out string, err error) {
-        err = c.SendRequest("POST", fmt.Sprintf("/addresses/first_free/%d", id), &in, &out)
+        err = c.SendRequest("POST", fmt.Sprintf("/addresses/first_free/%d/", id), &in, &out)
         return
 }
 
