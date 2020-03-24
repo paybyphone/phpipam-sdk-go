@@ -99,8 +99,12 @@ func (c *Client) GetCustomFieldsSchema(controller string) (out map[string]phpipa
 func (c *Client) GetCustomFields(id int, controller string) (out map[string]interface{}, err error) {
 	var schema map[string]phpipam.CustomField
 	schema, err = c.GetCustomFieldsSchema(controller)
-	if err != nil {
-		return
+	switch {
+		case err.Error() == "Error from API (200): No custom fields defined":
+		    err = nil
+		    return
+		case err != nil:
+		    return
 	}
 
 	out, err = c.getCustomFieldsRequest(id, controller, schema)
@@ -143,8 +147,13 @@ func (c *Client) getCustomFieldsRequest(id int, controller string, schema map[st
 func (c *Client) UpdateCustomFields(id int, in map[string]interface{}, controller string) (message string, err error) {
 	var schema map[string]phpipam.CustomField
 	schema, err = c.GetCustomFieldsSchema(controller)
-	if err != nil {
-		return
+	switch {
+		// Ignore this error if the caller is not setting any fields.
+		case len(in) == 0 && err.Error() == "Error from API (200): No custom fields defined":
+		    err = nil
+		    return
+	    case err != nil:
+		    return
 	}
 	message, err = c.updateCustomFieldsRequest(id, in, controller, schema)
 	return
