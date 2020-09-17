@@ -117,6 +117,12 @@ func (c *Controller) CreateSubnet(in Subnet) (message string, err error) {
 	return
 }
 
+// CreateFirstFreeSubnet creates a first free child subnet inside subnet with specified mask by sending a POST request.
+func (c *Controller) CreateFirstFreeSubnet(id int, mask int, in Subnet) (message string, err error) {
+	err = c.SendRequest("POST", fmt.Sprintf("/subnets/%d/first_subnet/%d/", id, mask), &in, &message)
+	return
+}
+
 // GetSubnetByID GETs a subnet via its ID.
 func (c *Controller) GetSubnetByID(id int) (out Subnet, err error) {
 	err = c.SendRequest("GET", fmt.Sprintf("/subnets/%d/", id), &struct{}{}, &out)
@@ -132,6 +138,12 @@ func (c *Controller) GetSubnetByID(id int) (out Subnet, err error) {
 // return that subnet only.
 func (c *Controller) GetSubnetsByCIDR(cidr string) (out []Subnet, err error) {
 	err = c.SendRequest("GET", fmt.Sprintf("/subnets/cidr/%s/", cidr), &struct{}{}, &out)
+	return
+}
+
+// GetFirstFreeSubnet GETs the first free child subnet inside subnet with specified mask
+func (c *Controller) GetFirstFreeSubnet(id int, mask int) (message string, err error) {
+	err = c.SendRequest("GET", fmt.Sprintf("/subnets/%d/first_subnet/%d/", id, mask), &struct{}{}, &message)
 	return
 }
 
