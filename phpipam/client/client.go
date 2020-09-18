@@ -4,6 +4,7 @@ package client
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/pavel-z1/phpipam-sdk-go/phpipam"
 	"github.com/pavel-z1/phpipam-sdk-go/phpipam/request"
@@ -100,11 +101,9 @@ func (c *Client) GetCustomFields(id int, controller string) (out map[string]inte
 	var schema map[string]phpipam.CustomField
 	schema, err = c.GetCustomFieldsSchema(controller)
 	switch {
-		case err.Error() == "Error from API (200): No custom fields defined":
-		    err = nil
-		    return
-		case err != nil:
-		    return
+	case err != nil:
+		log.Printf("Error getting custom Fields: %s", err)
+		return
 	}
 
 	out, err = c.getCustomFieldsRequest(id, controller, schema)
@@ -148,12 +147,12 @@ func (c *Client) UpdateCustomFields(id int, in map[string]interface{}, controlle
 	var schema map[string]phpipam.CustomField
 	schema, err = c.GetCustomFieldsSchema(controller)
 	switch {
-		// Ignore this error if the caller is not setting any fields.
-		case len(in) == 0 && err.Error() == "Error from API (200): No custom fields defined":
-		    err = nil
-		    return
-	    case err != nil:
-		    return
+	// Ignore this error if the caller is not setting any fields.
+	case len(in) == 0 && err.Error() == "Error from API (200): No custom fields defined":
+		err = nil
+		return
+	case err != nil:
+		return
 	}
 	message, err = c.updateCustomFieldsRequest(id, in, controller, schema)
 	return
