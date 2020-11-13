@@ -9,10 +9,10 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/paybyphone/phpipam-sdk-go/controllers/addresses"
-	"github.com/paybyphone/phpipam-sdk-go/phpipam"
-	"github.com/paybyphone/phpipam-sdk-go/phpipam/session"
-	"github.com/paybyphone/phpipam-sdk-go/testacc"
+	"github.com/pavel-z1/phpipam-sdk-go/controllers/addresses"
+	"github.com/pavel-z1/phpipam-sdk-go/phpipam"
+	"github.com/pavel-z1/phpipam-sdk-go/phpipam/session"
+	"github.com/pavel-z1/phpipam-sdk-go/testacc"
 )
 
 var testCreateSubnetInput = Subnet{
@@ -28,6 +28,21 @@ const testCreateSubnetOutputJSON = `
   "code": 201,
   "success": true,
   "data": "Subnet created"
+}
+`
+
+var testCreateFirstFreeSubnetInput = Subnet{
+	Description: "Subnet1",
+}
+
+const testCreateFirstFreeSubnetOutputExpected = "10.10.4.0/25"
+const testCreateFirstFreeSubnetOutputJSON = `
+{
+  "code": 201,
+  "success": true,
+  "message": "Subnet created",
+  "id": "10",
+  "data": "10.10.4.0/25"
 }
 `
 
@@ -186,6 +201,15 @@ const testGetSubnetsByCIDROutputJSON = `
       ]
     }
   ]
+}
+`
+
+const testGetFirstFreeSubnetOutputExpected = "10.10.4.0/25"
+const testGetFirstFreeSubnetOutputJSON = `
+{
+  "code": 200,
+  "success": true,
+  "data": "10.10.4.0/25"
 }
 `
 
@@ -503,6 +527,27 @@ func TestCreateSubnet(t *testing.T) {
 	}
 }
 
+func TestCreateFirstFreeSubnet(t *testing.T){
+	ts := httpCreatedTestServer(testCreateFirstFreeSubnetOutputJSON)
+	defer ts.Close()
+	sess := fullSessionConfig()
+	sess.Config.Endpoint = ts.URL
+	client := NewController(sess)
+
+	in := testCreateFirstFreeSubnetInput
+	mask := 25
+	id := 2
+	expected := testCreateFirstFreeSubnetOutputExpected
+	actual, err := client.CreateFirstFreeSubnet(id, mask, in)
+	if err != nil {
+		t.Fatalf("Bad: %s", err)
+	}
+
+	if !reflect.DeepEqual(expected, actual) {
+		t.Fatalf("Expected %#v, got %#v", expected, actual)
+	}
+}
+
 func TestGetSubnetByID(t *testing.T) {
 	ts := httpOKTestServer(testGetSubnetByIDOutputJSON)
 	defer ts.Close()
@@ -530,6 +575,26 @@ func TestGetSubnetsByCIDR(t *testing.T) {
 
 	expected := testGetSubnetsByCIDROutputExpected
 	actual, err := client.GetSubnetsByCIDR("10.10.3.0/24")
+	if err != nil {
+		t.Fatalf("Bad: %s", err)
+	}
+
+	if !reflect.DeepEqual(expected, actual) {
+		t.Fatalf("Expected %#v, got %#v", expected, actual)
+	}
+}
+
+func TestGetFirstFreeSubnet(t *testing.T) {
+	ts := httpOKTestServer(testGetFirstFreeSubnetOutputJSON)
+	defer ts.Close()
+	sess := fullSessionConfig()
+	sess.Config.Endpoint = ts.URL
+	client := NewController(sess)
+
+	id := 2
+	mask := 25
+	expected := testGetFirstFreeSubnetOutputExpected
+	actual, err := client.GetFirstFreeSubnet(id, mask)
 	if err != nil {
 		t.Fatalf("Bad: %s", err)
 	}

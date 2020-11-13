@@ -5,9 +5,9 @@ package addresses
 import (
 	"fmt"
 
-	"github.com/paybyphone/phpipam-sdk-go/phpipam"
-	"github.com/paybyphone/phpipam-sdk-go/phpipam/client"
-	"github.com/paybyphone/phpipam-sdk-go/phpipam/session"
+	"github.com/pavel-z1/phpipam-sdk-go/phpipam"
+	"github.com/pavel-z1/phpipam-sdk-go/phpipam/client"
+	"github.com/pavel-z1/phpipam-sdk-go/phpipam/session"
 )
 
 // Address represents an IP address resource within PHPIPAM.
@@ -89,6 +89,12 @@ func NewController(sess *session.Session) *Controller {
 func (c *Controller) CreateAddress(in Address) (message string, err error) {
 	err = c.SendRequest("POST", "/addresses/", &in, &message)
 	return
+}
+
+// CreateAddress creates a first free in subnet address by sending a POST request.
+func (c *Controller) CreateFirstFreeAddress(id int, in Address) (out string, err error) {
+        err = c.SendRequest("POST", fmt.Sprintf("/addresses/first_free/%d/", id), &in, &out)
+        return
 }
 
 // GetAddressByID GETs an address via its ID.

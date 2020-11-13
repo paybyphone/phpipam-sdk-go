@@ -5,10 +5,10 @@ package subnets
 import (
 	"fmt"
 
-	"github.com/paybyphone/phpipam-sdk-go/controllers/addresses"
-	"github.com/paybyphone/phpipam-sdk-go/phpipam"
-	"github.com/paybyphone/phpipam-sdk-go/phpipam/client"
-	"github.com/paybyphone/phpipam-sdk-go/phpipam/session"
+	"github.com/pavel-z1/phpipam-sdk-go/controllers/addresses"
+	"github.com/pavel-z1/phpipam-sdk-go/phpipam"
+	"github.com/pavel-z1/phpipam-sdk-go/phpipam/client"
+	"github.com/pavel-z1/phpipam-sdk-go/phpipam/session"
 )
 
 // Subnet represents a PHPIPAM subnet.
@@ -84,6 +84,12 @@ type Subnet struct {
 	// The date of the last edit to this resource.
 	EditDate string `json:"editDate,omitempty"`
 
+	// Gateway IP and ID of Gateway IP
+	Gateway  map[string]interface{} `json:"gateway,omitempty"`
+
+	// Gateway IP ID
+	GatewayID  string `json:"gatewayId,omitempty"`
+
 	// A map[string]interface{} of custom fields to set on the resource. Note
 	// that this functionality requires PHPIPAM 1.3 or higher with the "Nest
 	// custom fields" flag set on the specific API integration. If this is not
@@ -111,6 +117,12 @@ func (c *Controller) CreateSubnet(in Subnet) (message string, err error) {
 	return
 }
 
+// CreateFirstFreeSubnet creates a first free child subnet inside subnet with specified mask by sending a POST request.
+func (c *Controller) CreateFirstFreeSubnet(id int, mask int, in Subnet) (message string, err error) {
+	err = c.SendRequest("POST", fmt.Sprintf("/subnets/%d/first_subnet/%d/", id, mask), &in, &message)
+	return
+}
+
 // GetSubnetByID GETs a subnet via its ID.
 func (c *Controller) GetSubnetByID(id int) (out Subnet, err error) {
 	err = c.SendRequest("GET", fmt.Sprintf("/subnets/%d/", id), &struct{}{}, &out)
@@ -126,6 +138,12 @@ func (c *Controller) GetSubnetByID(id int) (out Subnet, err error) {
 // return that subnet only.
 func (c *Controller) GetSubnetsByCIDR(cidr string) (out []Subnet, err error) {
 	err = c.SendRequest("GET", fmt.Sprintf("/subnets/cidr/%s/", cidr), &struct{}{}, &out)
+	return
+}
+
+// GetFirstFreeSubnet GETs the first free child subnet inside subnet with specified mask
+func (c *Controller) GetFirstFreeSubnet(id int, mask int) (message string, err error) {
+	err = c.SendRequest("GET", fmt.Sprintf("/subnets/%d/first_subnet/%d/", id, mask), &struct{}{}, &message)
 	return
 }
 

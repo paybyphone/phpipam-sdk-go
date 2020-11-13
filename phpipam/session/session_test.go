@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/paybyphone/phpipam-sdk-go/phpipam"
+	"github.com/pavel-z1/phpipam-sdk-go/phpipam"
 )
 
 func phpipamConfig() phpipam.Config {
