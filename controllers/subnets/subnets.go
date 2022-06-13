@@ -43,6 +43,9 @@ type Subnet struct {
 	// The ID of the nameserver to attache the subnet to.
 	NameserverID int `json:"nameserverId,string,omitempty"`
 
+	// The ID and IPs of the nameservers for the subnet
+	Nameservers map[string]interface{} `json:"nameservers,omitempty"`
+
 	// true if the name should be displayed in listing instead of the subnet
 	// address.
 	ShowName phpipam.BoolIntString `json:"showName,omitempty"`

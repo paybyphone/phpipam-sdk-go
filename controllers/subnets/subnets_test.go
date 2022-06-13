@@ -77,6 +77,13 @@ const testGetSubnetByIDOutputJSON = `
     "DNSrecursive": "0",
     "DNSrecords": "0",
     "nameserverId": "0",
+    "nameservers": {
+        "id": "0",
+        "name": "mynameserver.example.com",
+        "namesrv1": "1.2.3.4",
+        "description": "a nameserver description",
+        "permissions": 1
+    },
     "scanAgent": null,
     "isFolder": "0",
     "isFull": "0",
