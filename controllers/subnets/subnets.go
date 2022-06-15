@@ -144,6 +144,11 @@ func (c *Controller) GetSubnetsByCIDR(cidr string) (out []Subnet, err error) {
 	return
 }
 
+func (c *Controller) GetSubnetsByCIDRAndSection(cidr string, section_id int) (out []Subnet, err error) {
+	err = c.SendRequest("GET", fmt.Sprintf("/subnets/cidr/%s/?filter_by=sectionId&filter_value=%d", cidr, section_id), &struct{}{}, &out)
+	return
+}
+
 // GetFirstFreeSubnet GETs the first free child subnet inside subnet with specified mask
 func (c *Controller) GetFirstFreeSubnet(id int, mask int) (message string, err error) {
 	err = c.SendRequest("GET", fmt.Sprintf("/subnets/%d/first_subnet/%d/", id, mask), &struct{}{}, &message)
