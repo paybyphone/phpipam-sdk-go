@@ -29,16 +29,20 @@ func NewClient(s *session.Session) *Client {
 // loginSession logs in a session via the user controller. This is the only
 // valid operation if the session does not have a token yet.
 func loginSession(s *session.Session) error {
-	var out session.Token
-	r := request.NewRequest(s)
-	r.Method = "POST"
-	r.URI = "/user/"
-	r.Input = &struct{}{}
-	r.Output = &out
-	if err := r.Send(); err != nil {
-		return err
-	}
-	s.Token = out
+	if s.Config.Username == "" {
+		s.Token.String = s.Config.Password
+	} else {
+		var out session.Token
+		r := request.NewRequest(s)
+		r.Method = "POST"
+		r.URI = "/user/"
+		r.Input = &struct{}{}
+		r.Output = &out
+		if err := r.Send(); err != nil {
+			return err
+		}
+		s.Token = out
+    }
 	return nil
 }
 
