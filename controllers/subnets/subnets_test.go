@@ -52,6 +52,13 @@ var testGetSubnetByIDOutputExpected = Subnet{
 	Mask:           24,
 	SectionID:      1,
 	MasterSubnetID: 2,
+	Nameservers: map[string]interface{}{
+		"id":          "0",
+		"name":        "mynameserver.example.com",
+		"namesrv1":    "1.2.3.4",
+		"description": "a nameserver description",
+		"permissions": "1",
+	},
 }
 
 const testGetSubnetByIDOutputJSON = `
@@ -82,7 +89,7 @@ const testGetSubnetByIDOutputJSON = `
         "name": "mynameserver.example.com",
         "namesrv1": "1.2.3.4",
         "description": "a nameserver description",
-        "permissions": 1
+        "permissions": "1"
     },
     "scanAgent": null,
     "isFolder": "0",
@@ -534,7 +541,7 @@ func TestCreateSubnet(t *testing.T) {
 	}
 }
 
-func TestCreateFirstFreeSubnet(t *testing.T){
+func TestCreateFirstFreeSubnet(t *testing.T) {
 	ts := httpCreatedTestServer(testCreateFirstFreeSubnetOutputJSON)
 	defer ts.Close()
 	sess := fullSessionConfig()
