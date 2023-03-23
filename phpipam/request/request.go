@@ -134,6 +134,7 @@ func (r *Request) Send() error {
 	var err error
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: r.Session.Config.Insecure},
+		Proxy:           http.ProxyFromEnvironment,
 	}
 	client := &http.Client{
 		Transport: tr,
