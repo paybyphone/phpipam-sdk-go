@@ -127,6 +127,46 @@ const testGetAddressesByIPOutputJSON = `
 }
 `
 
+var testGetAddressesByIpInSubnetOutputExpected = Address{
+	ID:          11,
+	SubnetID:    3,
+	IPAddress:   "10.10.1.10",
+	Description: "foobar",
+	
+}
+
+const testGetAddressesByIpInSubnetOutputJSON = `
+{
+  "code": 200,
+  "success": true,
+  "data": 
+	{
+		"id": "11",
+		"subnetId": "3",
+		"ip": "10.10.1.10",
+		"is_gateway": null,
+		"description": "foobar",
+		"hostname": null,
+		"mac": null,
+		"owner": null,
+		"port": null,
+		"note": null,
+		"lastSeen": null,
+		"excludePing": null,
+		"PTRignore": null,
+		"PTR": "0",
+		"firewallAddressObject": null,
+		"editDate": null,
+		"links": [
+			{
+				"rel": "self",
+				"href": "/api/test/addresses/11/"
+			}
+		]
+    }
+}
+`
+
 var testGetAddressCustomFieldsSchemaExpected = map[string]phpipam.CustomField{
 	"CustomTestAddresses": phpipam.CustomField{
 		Name:    "CustomTestAddresses",
@@ -276,6 +316,25 @@ func TestGetAddressesByIP(t *testing.T) {
 		t.Fatalf("Expected %#v, got %#v", expected, actual)
 	}
 }
+
+func TestGetAddressesByIpInSubnet(t *testing.T) {
+	ts := httpOKTestServer(testGetAddressesByIpInSubnetOutputJSON)
+	defer ts.Close()
+	sess := fullSessionConfig()
+	sess.Config.Endpoint = ts.URL
+	client := NewController(sess)
+
+	expected := testGetAddressesByIpInSubnetOutputExpected
+	actual, err := client.GetAddressesByIpInSubnet("10.10.1.10/24",3)
+	if err != nil {
+		t.Fatalf("Bad: %s", err)
+	}
+
+	if !reflect.DeepEqual(expected, actual) {
+		t.Fatalf("Expected %#v, got %#v", expected, actual)
+	}
+}
+
 
 func TestGetAddressCustomFieldsSchema(t *testing.T) {
 	ts := httpOKTestServer(testGetAddressCustomFieldsSchemaJSON)
