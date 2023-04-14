@@ -4,8 +4,10 @@ package client
 
 import (
 	"fmt"
-	"log"
+	"os"
 
+	"github.com/apex/log"
+	"github.com/apex/log/handlers/logfmt"
 	"github.com/pavel-z1/phpipam-sdk-go/phpipam"
 	"github.com/pavel-z1/phpipam-sdk-go/phpipam/request"
 	"github.com/pavel-z1/phpipam-sdk-go/phpipam/session"
@@ -20,10 +22,28 @@ type Client struct {
 
 // NewClient creates a new client.
 func NewClient(s *session.Session) *Client {
+	log.SetLevel(log.InfoLevel)
+	log.SetHandler(logfmt.New(os.Stderr))
+
+	env_loglevel := os.Getenv("PHPIPAMSDK_LOGLEVEL")
+	if env_loglevel != "" {
+		loglevel, err := log.ParseLevel(env_loglevel)
+		if err == nil {
+			log.SetLevel(loglevel)
+		} else {
+			log.Warnf("Invalid log level, defaulting to info: %s", err)
+		}
+	}
+
 	c := &Client{
 		Session: s,
 	}
 	return c
+}
+
+// change logger level, default is info
+func SetLevel(level log.Level) {
+	log.SetLevel(level)
 }
 
 // loginSession logs in a session via the user controller. This is the only
@@ -42,7 +62,7 @@ func loginSession(s *session.Session) error {
 			return err
 		}
 		s.Token = out
-    }
+	}
 	return nil
 }
 
@@ -106,7 +126,7 @@ func (c *Client) GetCustomFields(id int, controller string) (out map[string]inte
 	schema, err = c.GetCustomFieldsSchema(controller)
 	switch {
 	case err != nil:
-		log.Printf("Error getting custom Fields: %s", err)
+		log.Warnf("Error getting custom Fields: %s", err)
 		return
 	}
 

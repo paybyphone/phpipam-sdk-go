@@ -35,6 +35,15 @@ fields, enable the nested functionality - otherwise, ensure that your fields are
 not required and choose sane defaults if it's absolutely necessary for data to
 be present.
 
+## A Note on Logging
+
+This software uses apex library to handle logging. You can control verbosity by
+setting environment variable PHPIPAMSDK_LOGLEVEL to one of supported value:
+* debug
+* info
+* warn
+* error
+* fatal
 
 ## License
 
