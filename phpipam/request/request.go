@@ -3,12 +3,16 @@ package request
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 
-	"github.com/paybyphone/phpipam-sdk-go/phpipam/session"
+	"github.com/apex/log"
+	"github.com/apex/log/handlers/logfmt"
+	"github.com/pavel-z1/phpipam-sdk-go/phpipam/session"
 )
 
 // APIResponse represents a PHPIPAM response body. Both successful and
@@ -114,6 +118,7 @@ func newRequestResponse(r *http.Response) *requestResponse {
 	}
 	defer r.Body.Close()
 	body, err := ioutil.ReadAll(r.Body)
+	log.Debugf("Response Body Debug ................... %s", body)
 	if err != nil {
 		panic(err)
 	}
@@ -129,24 +134,34 @@ func newRequestResponse(r *http.Response) *requestResponse {
 func (r *Request) Send() error {
 	var req *http.Request
 	var err error
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: r.Session.Config.Insecure},
+		Proxy:           http.ProxyFromEnvironment,
+	}
 	client := &http.Client{
+		Transport: tr,
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			return http.ErrUseLastResponse
 		},
 	}
 
 	switch r.Method {
-	case "OPTIONS", "GET", "POST", "PUT", "PATCH", "DELETE":
+	case "OPTIONS", "POST", "PUT", "PATCH", "DELETE":
 		bs, err := json.Marshal(r.Input)
+		log.Debugf("Request Body Debug ................... %s", bs)
 		if err != nil {
 			return fmt.Errorf("Error preparing request data: %s", err)
 		}
 		buf := bytes.NewBuffer(bs)
 		req, err = http.NewRequest(r.Method, fmt.Sprintf("%s/%s%s", r.Session.Config.Endpoint, r.Session.Config.AppID, r.URI), buf)
 		req.Header.Add("Content-Type", "application/json")
+	case "GET":
+		req, err = http.NewRequest(r.Method, fmt.Sprintf("%s/%s%s", r.Session.Config.Endpoint, r.Session.Config.AppID, r.URI), nil)
+
 	default:
 		return fmt.Errorf("API request method %s not supported by PHPIPAM", r.Method)
 	}
+	log.Debugf("Request URL Debug ...................Method: %s, UR: %s/%s%s", r.Method, r.Session.Config.Endpoint, r.Session.Config.AppID, r.URI)
 
 	if err != nil {
 		panic(err)
@@ -186,8 +201,26 @@ func (r *Request) Send() error {
 
 // NewRequest creates a new request instance with configuration set.
 func NewRequest(s *session.Session) *Request {
+	log.SetLevel(log.InfoLevel)
+	log.SetHandler(logfmt.New(os.Stderr))
+
+	env_loglevel := os.Getenv("PHPIPAMSDK_LOGLEVEL")
+	if env_loglevel != "" {
+		loglevel, err := log.ParseLevel(env_loglevel)
+		if err == nil {
+			log.SetLevel(loglevel)
+		} else {
+			log.Warnf("Invalid log level, defaulting to info: %s", err)
+		}
+	}
+
 	r := &Request{
 		Session: s,
 	}
 	return r
+}
+
+// change logger level, default is info
+func SetLevel(level log.Level) {
+	log.SetLevel(level)
 }

@@ -4,10 +4,13 @@ package client
 
 import (
 	"fmt"
+	"os"
 
-	"github.com/paybyphone/phpipam-sdk-go/phpipam"
-	"github.com/paybyphone/phpipam-sdk-go/phpipam/request"
-	"github.com/paybyphone/phpipam-sdk-go/phpipam/session"
+	"github.com/apex/log"
+	"github.com/apex/log/handlers/logfmt"
+	"github.com/pavel-z1/phpipam-sdk-go/phpipam"
+	"github.com/pavel-z1/phpipam-sdk-go/phpipam/request"
+	"github.com/pavel-z1/phpipam-sdk-go/phpipam/session"
 )
 
 // Client encompasses a generic client object that is further extended by
@@ -19,25 +22,47 @@ type Client struct {
 
 // NewClient creates a new client.
 func NewClient(s *session.Session) *Client {
+	log.SetLevel(log.InfoLevel)
+	log.SetHandler(logfmt.New(os.Stderr))
+
+	env_loglevel := os.Getenv("PHPIPAMSDK_LOGLEVEL")
+	if env_loglevel != "" {
+		loglevel, err := log.ParseLevel(env_loglevel)
+		if err == nil {
+			log.SetLevel(loglevel)
+		} else {
+			log.Warnf("Invalid log level, defaulting to info: %s", err)
+		}
+	}
+
 	c := &Client{
 		Session: s,
 	}
 	return c
 }
 
+// change logger level, default is info
+func SetLevel(level log.Level) {
+	log.SetLevel(level)
+}
+
 // loginSession logs in a session via the user controller. This is the only
 // valid operation if the session does not have a token yet.
 func loginSession(s *session.Session) error {
-	var out session.Token
-	r := request.NewRequest(s)
-	r.Method = "POST"
-	r.URI = "/user/"
-	r.Input = &struct{}{}
-	r.Output = &out
-	if err := r.Send(); err != nil {
-		return err
+	if s.Config.Username == "" {
+		s.Token.String = s.Config.Password
+	} else {
+		var out session.Token
+		r := request.NewRequest(s)
+		r.Method = "POST"
+		r.URI = "/user/"
+		r.Input = &struct{}{}
+		r.Output = &out
+		if err := r.Send(); err != nil {
+			return err
+		}
+		s.Token = out
 	}
-	s.Token = out
 	return nil
 }
 
@@ -99,7 +124,9 @@ func (c *Client) GetCustomFieldsSchema(controller string) (out map[string]phpipa
 func (c *Client) GetCustomFields(id int, controller string) (out map[string]interface{}, err error) {
 	var schema map[string]phpipam.CustomField
 	schema, err = c.GetCustomFieldsSchema(controller)
-	if err != nil {
+	switch {
+	case err != nil:
+		log.Warnf("Error getting custom Fields: %s", err)
 		return
 	}
 
@@ -143,7 +170,12 @@ func (c *Client) getCustomFieldsRequest(id int, controller string, schema map[st
 func (c *Client) UpdateCustomFields(id int, in map[string]interface{}, controller string) (message string, err error) {
 	var schema map[string]phpipam.CustomField
 	schema, err = c.GetCustomFieldsSchema(controller)
-	if err != nil {
+	switch {
+	// Ignore this error if the caller is not setting any fields.
+	case len(in) == 0 && err.Error() == "Error from API (200): No custom fields defined":
+		err = nil
+		return
+	case err != nil:
 		return
 	}
 	message, err = c.updateCustomFieldsRequest(id, in, controller, schema)

@@ -5,9 +5,9 @@ package vlans
 import (
 	"fmt"
 
-	"github.com/paybyphone/phpipam-sdk-go/phpipam"
-	"github.com/paybyphone/phpipam-sdk-go/phpipam/client"
-	"github.com/paybyphone/phpipam-sdk-go/phpipam/session"
+	"github.com/pavel-z1/phpipam-sdk-go/phpipam"
+	"github.com/pavel-z1/phpipam-sdk-go/phpipam/client"
+	"github.com/pavel-z1/phpipam-sdk-go/phpipam/session"
 )
 
 // VLAN represents a PHPIPAM VLAN.
@@ -73,6 +73,11 @@ func (c *Controller) GetVLANByID(id int) (out VLAN, err error) {
 func (c *Controller) GetVLANsByNumber(id int) (out []VLAN, err error) {
 	err = c.SendRequest("GET", fmt.Sprintf("/vlans/search/%d/", id), &struct{}{}, &out)
 	return
+}
+
+func (c *Controller) GetVLANsByNumberAndDomainID(vlan_id int, domain_id int) (out []VLAN, err error) {
+        err = c.SendRequest("GET", fmt.Sprintf("/vlans/search/%d/?filter_by=domainId&filter_value=%d", vlan_id, domain_id), &struct{}{}, &out)
+        return
 }
 
 // GetVLANCustomFieldsSchema GETs the custom fields for the vlans controller via

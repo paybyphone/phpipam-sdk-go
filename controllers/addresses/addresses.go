@@ -5,9 +5,9 @@ package addresses
 import (
 	"fmt"
 
-	"github.com/paybyphone/phpipam-sdk-go/phpipam"
-	"github.com/paybyphone/phpipam-sdk-go/phpipam/client"
-	"github.com/paybyphone/phpipam-sdk-go/phpipam/session"
+	"github.com/pavel-z1/phpipam-sdk-go/phpipam"
+	"github.com/pavel-z1/phpipam-sdk-go/phpipam/client"
+	"github.com/pavel-z1/phpipam-sdk-go/phpipam/session"
 )
 
 // Address represents an IP address resource within PHPIPAM.
@@ -91,6 +91,12 @@ func (c *Controller) CreateAddress(in Address) (message string, err error) {
 	return
 }
 
+// CreateAddress creates a first free in subnet address by sending a POST request.
+func (c *Controller) CreateFirstFreeAddress(id int, in Address) (out string, err error) {
+        err = c.SendRequest("POST", fmt.Sprintf("/addresses/first_free/%d/", id), &in, &out)
+        return
+}
+
 // GetAddressByID GETs an address via its ID.
 func (c *Controller) GetAddressByID(id int) (out Address, err error) {
 	err = c.SendRequest("GET", fmt.Sprintf("/addresses/%d/", id), &struct{}{}, &out)
@@ -103,6 +109,14 @@ func (c *Controller) GetAddressByID(id int) (out Address, err error) {
 // entirely clear how to perform a search that would yield multiple results.
 func (c *Controller) GetAddressesByIP(ipaddr string) (out []Address, err error) {
 	err = c.SendRequest("GET", fmt.Sprintf("/addresses/search/%s/", ipaddr), &struct{}{}, &out)
+	return
+}
+
+// GetAddressesByIP searches for an address by its IP with in given subnet
+// When having multiple subnets with same ip range this will return the address in the given subnet
+// Those subnet may not talk to each other but still exist under on phpIPAM instance especially on ones migrated from previous versions 
+func (c *Controller) GetAddressesByIpInSubnet(ipaddr string,subnetID int) (out Address, err error) {
+	err = c.SendRequest("GET", fmt.Sprintf("/addresses/%s/%d", ipaddr,subnetID), &struct{}{}, &out)
 	return
 }
 

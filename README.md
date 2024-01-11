@@ -1,4 +1,4 @@
-[![GoDoc](https://godoc.org/github.com/paybyphone/phpipam-sdk-go?status.svg)](https://godoc.org/github.com/paybyphone/phpipam-sdk-go)
+[![GoDoc](https://godoc.org/github.com/pavel-z1/phpipam-sdk-go?status.svg)](https://godoc.org/github.com/pavel-z1/phpipam-sdk-go)
 
 # phpipam-sdk-go - Partial SDK for PHPIPAM
 
@@ -15,7 +15,7 @@ provider to help insert data gathered from AWS and beyond.
 
 See the [GoDoc][2] for the SDK usage details.
 
-[2]: https://godoc.org/github.com/paybyphone/phpipam-sdk-go
+[2]: https://godoc.org/github.com/pavel-z1/phpipam-sdk-go
 
 ## A Note on Custom Fields
 
@@ -35,6 +35,15 @@ fields, enable the nested functionality - otherwise, ensure that your fields are
 not required and choose sane defaults if it's absolutely necessary for data to
 be present.
 
+## A Note on Logging
+
+This software uses apex library to handle logging. You can control verbosity by
+setting environment variable PHPIPAMSDK_LOGLEVEL to one of supported value:
+* debug
+* info
+* warn
+* error
+* fatal
 
 ## License
 
